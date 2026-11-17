@@ -12,3 +12,5 @@ Abra o `index.html` no navegador (é um arquivo único, sem build).
 - O: parede com todos os slides
 - N: notas do apresentador
 - P ou `?pdf`: exportar para PDF
+
+Site: https://pedrourio.github.io/vector-database-presentation/
