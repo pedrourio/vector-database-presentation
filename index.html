@@ -1,0 +1,1324 @@
+<!doctype html>
+<!--
+  Deck de slides em parede (motor dos decks "Testes de UI e UX" e "Adapter").
+  Configure: data-tema no <html> ("vidro" ou "cabo"), os data-* do <body> e o <template id="logo">.
+  Cada <section class="slide"> é um slide 1920×1080. O motor monta cabeçalho, rodapé, moldura,
+  parede, câmera, notas, paleta (K), PDF (?pdf) e passos (data-step).
+-->
+<html lang="pt-BR" data-tema="voxel">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bancos de Dados Vetoriais · BAN II</title>
+<meta name="description" content="Bancos de dados vetoriais: definição, contexto de uso, vantagens e desvantagens e representação visual. BAN II.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400..700&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>
+/* ═════════════════════════ Temas ═════════════════════════
+   Todo valor de cor e fonte passa por um token. Para um tema novo, copie um bloco,
+   troque os valores e mude data-tema no <html>. --p é a cor primária, --s a secundária. */
+:root,[data-tema="vidro"]{
+  --wall:#e4e4e9; --white:#f4f4f7; --w:#fefeff; --black:#08080a;
+  --ink:#141418; --ink-2:#232329; --night:#141418; --night-card:#1e1e24; --night-well:#2a2a31; --paper:#f4f4f7;
+  --mut:#686874; --mut-dk:#a8a8b3; --faint:#8d8d98; --on-dark:#d4d4dd;
+  --p:#ff4785; --p-2:#ff7eb0; --p-txt:#d0175f; --p-soft:#ffe3ee; --p-wash:rgba(255,71,133,.13);
+  --s:#1ea7fd; --s-2:#74c8ff; --s-txt:#0a6cb5; --s-soft:#dff1ff; --t:#b57cf0;
+  --grad:linear-gradient(120deg,var(--p) 0%,#c770e0 52%,var(--s) 100%);
+  --grad-p:linear-gradient(140deg,#ff8db8,var(--p)); --grad-s:linear-gradient(140deg,#82cdff,var(--s));
+  --cab-1:#ff4785; --cab-2:#c770e0; --cab-3:#1ea7fd;
+  --green:#16a34a; --green-txt:#157a3c; --green-soft:#dcf5e4; --red-txt:#c02626; --red-soft:#fde4e4;
+  --well-lt:#eeeef2; --codebg:#f6f6f9; --codefg:#1d1d24; --code-num:#9a5b00;
+  --wire:#c8c8d2; --wire-dk:#4a4a55; --pin:#b4b4c0;
+  --shadow-warm:rgba(30,30,70,.22);
+  --glass-hi:color-mix(in srgb,var(--w) 80%,transparent); --glass-lo:color-mix(in srgb,var(--w) 40%,transparent);
+  --glass-edge:color-mix(in srgb,var(--w) 88%,transparent); --glass-blur:blur(26px) saturate(1.7);
+  --glass-shadow:0 30px 60px -30px color-mix(in srgb,var(--t) 32%,transparent),0 2px 6px color-mix(in srgb,var(--ink) 4%,transparent);
+  --sans:'Poppins',system-ui,sans-serif; --mono:'JetBrains Mono',ui-monospace,monospace;
+  --ease:cubic-bezier(.2,.7,.2,1); --ease-out:cubic-bezier(.16,1,.3,1);
+}
+[data-tema="cabo"]{
+  --wall:#dcd8d2; --white:#fbfbf9; --w:#ffffff; --black:#0b0b0c;
+  --ink:#17181b; --ink-2:#232529; --night:#111214; --night-card:#1b1d21; --night-well:#26282d; --paper:#f1f0ed;
+  --mut:#6b6964; --mut-dk:#9d9ea3; --faint:#8b8d92; --on-dark:#d6d4cf;
+  --p:#ff6a13; --p-2:#ff8b3d; --p-txt:#c2410c; --p-soft:#ffe6d6; --p-wash:rgba(255,106,19,.14);
+  --s:#2556c9; --s-2:#8fb4ff; --s-txt:#2556c9; --s-soft:#e3ebff; --t:#ff8b3d;
+  --grad:linear-gradient(120deg,#ffc9a1 0%,#ff7a24 50%,#ff5200 100%);
+  --grad-p:linear-gradient(140deg,var(--p-2),var(--p)); --grad-s:linear-gradient(140deg,#a9c4ff,#5b84e6);
+  --cab-1:#ffc9a1; --cab-2:#ff7a24; --cab-3:#ff5200;
+  --well-lt:#f1efeb; --codebg:#f3f2ee; --codefg:#1d1f23;
+  --wire:#c9c5bf; --wire-dk:#4a4c52; --pin:#b5b0a9;
+  --shadow-warm:rgba(60,40,20,.35);
+  --glass-shadow:0 30px 60px -32px rgba(110,60,20,.3),0 2px 6px rgba(60,40,20,.04);
+  --sans:'Inter Tight',system-ui,sans-serif;
+}
+[data-tema="voxel"]{
+  --wall:#cfe0d7; --white:#f3f8f5; --w:#ffffff; --black:#04110b;
+  --ink:#0d1f17; --ink-2:#17302a; --night:#06140e; --night-card:#0d2219; --night-well:#163428; --paper:#eaf5ef;
+  --mut:#4b665a; --mut-dk:#9cc3b0; --faint:#6f8c7f; --on-dark:#cfe6da;
+  --p:#16c47f; --p-2:#5fe3a8; --p-txt:#0a7347; --p-soft:#d3f3e3; --p-wash:rgba(22,196,127,.16);
+  --s:#7d97a4; --s-2:#c3d3db; --s-txt:#3e5a68; --s-soft:#e2ebef; --t:#a6f0cb;
+  --grad:linear-gradient(120deg,#22c98a 0%,#0fa76a 50%,#06603d 100%);
+  --grad-p:linear-gradient(140deg,#8ff3c6,var(--p)); --grad-s:linear-gradient(140deg,#dbe5ea,#9fb4be);
+  --cab-1:#8ff3c6; --cab-2:#16c47f; --cab-3:#0a7347;
+  --well-lt:#e2efe8; --codebg:#ecf4f0; --codefg:#10241b; --code-num:#8a5300;
+  --wire:#b3cbbf; --wire-dk:#2f5a47; --pin:#9ab8aa;
+  --shadow-warm:rgba(10,60,35,.32);
+  --glass-shadow:0 30px 60px -32px rgba(10,70,40,.36),0 2px 6px rgba(10,40,25,.05);
+  --vox-0:#d2ffe9; --vox-1:#8ff3c6; --vox-2:#4fe0a0; --vox-3:#22c98a; --vox-4:#13a86b; --vox-5:#0b7a50; --vox-6:#08583a; --vox-7:#053b27;
+  --sans:'Space Grotesk',system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:clip;background:var(--wall);font-family:var(--sans);-webkit-font-smoothing:antialiased;color:var(--ink)}
+::selection{background:var(--p-soft);color:var(--ink)}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+a{color:inherit}
+
+/* ═════════════════════════ Parede + câmera ═════════════════════════ */
+#wall{position:absolute;left:0;top:0;transform-origin:0 0}
+#wall.flying{will-change:transform}
+#cables{position:absolute;left:0;top:0;overflow:visible;pointer-events:none}
+#cables .link{fill:none;stroke:var(--wire);stroke-width:6;stroke-linecap:round}
+#cables .lit{fill:none;stroke:url(#flowGrad);stroke-width:10;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:1}
+#cables .lit.done{stroke-dashoffset:0}
+#cables .node{fill:var(--w);stroke:var(--wire);stroke-width:6}
+#cables .node.done{stroke:var(--p)}
+#cables .node.tip.done{stroke:var(--s)}
+#flowCur{pointer-events:none;opacity:0;transition:opacity .25s}
+#flowCur.on{opacity:1}
+#flowCur .c-body{fill:var(--ink);stroke:var(--w);stroke-width:2.4;stroke-linejoin:round}
+#flowRip{fill:none;stroke:var(--p);stroke-width:6;opacity:0}
+.frame{position:absolute;width:1920px;height:1080px;border-radius:36px;overflow:hidden;
+  box-shadow:0 2px 6px color-mix(in srgb,var(--ink) 5%,transparent),0 40px 90px -40px var(--shadow-warm)}
+html.bleed .frame{border-radius:0}
+body.ov .frame{cursor:pointer;transition:box-shadow .3s}
+body.ov .frame:hover{box-shadow:0 0 0 10px var(--p),0 40px 90px -40px var(--shadow-warm)}
+body.ov .frame.cur{box-shadow:0 0 0 10px var(--ink)}
+
+.slide{position:absolute;inset:0;width:1920px;height:1080px;overflow:hidden;background:var(--bg);color:var(--fg);contain:paint}
+.lt{--bg:var(--white);--fg:var(--ink);--mut:var(--mut);--line:color-mix(in srgb,var(--ink) 10%,transparent);--dot:color-mix(in srgb,var(--ink) 7.5%,transparent);--card:var(--w);--well:var(--well-lt);--acc:var(--p-txt)}
+.dk{--bg:var(--night);--fg:var(--paper);--mut:var(--mut-dk);--line:color-mix(in srgb,var(--w) 12%,transparent);--dot:color-mix(in srgb,var(--w) 6%,transparent);--card:var(--night-card);--well:var(--night-well);--acc:var(--p-2)}
+[data-tema="vidro"] .slide.lt{background:radial-gradient(55% 50% at 88% 8%,color-mix(in srgb,var(--p) 11%,transparent),transparent 70%),radial-gradient(50% 55% at 6% 96%,color-mix(in srgb,var(--s) 12%,transparent),transparent 70%),var(--bg)}
+/* pontos de protoboard */
+.slide::before{content:"";position:absolute;inset:0;background-image:radial-gradient(var(--dot) 1.6px,transparent 1.9px);background-size:40px 40px;background-position:20px 20px;
+  -webkit-mask-image:radial-gradient(120% 90% at 50% 40%,var(--black) 40%,transparent 100%);mask-image:radial-gradient(120% 90% at 50% 40%,var(--black) 40%,transparent 100%)}
+.slide>*{z-index:1}
+
+/* cabeçalho e rodapé (montados pelo motor) */
+.hdr{position:absolute;left:72px;right:72px;top:46px;display:flex;justify-content:space-between;align-items:center;font:500 26px var(--sans);z-index:4}
+.hdr .logo{display:flex;align-items:center;gap:14px}
+.hdr .logo svg{height:34px;width:auto}
+.hdr .yr{color:var(--mut);font-weight:400}
+.ftr{position:absolute;left:72px;right:72px;bottom:42px;display:grid;grid-template-columns:1.1fr 1fr 1fr auto;font:400 23px var(--sans);color:var(--mut);z-index:4}
+.ftr .pg{font:500 23px var(--mono);color:var(--fg);font-variant-numeric:tabular-nums}
+
+/* orbes (tema vidro) e fita (data-cable) */
+.orb{position:absolute;border-radius:50%;pointer-events:none;z-index:0;filter:blur(60px);opacity:.78;
+  background:radial-gradient(circle at 35% 35%,var(--p-2),color-mix(in srgb,var(--t) 80%,transparent) 45%,color-mix(in srgb,var(--s) 65%,transparent) 75%,transparent 80%)}
+.orb.b{background:radial-gradient(circle at 60% 40%,var(--s-2),color-mix(in srgb,var(--s) 70%,transparent) 45%,color-mix(in srgb,var(--t) 45%,transparent) 72%,transparent 80%)}
+@keyframes drift{50%{transform:translate(30px,-24px) scale(1.06)}}
+.enter .orb{animation:fade 1.4s ease both,drift 9s ease-in-out 1.4s infinite}
+.cable{position:absolute;left:0;top:0;width:1920px;height:1080px;pointer-events:none;overflow:visible;z-index:0}
+.cable .glow{filter:blur(30px)}
+
+/* ═════════════ Tipografia ═════════════ */
+.title{font:500 84px/1.08 var(--sans);letter-spacing:-.035em;text-wrap:balance}
+[data-tema="cabo"] .title{font-size:92px;line-height:1.04;letter-spacing:-.04em}
+.title.md{font-size:76px}
+.kick{font:500 30px var(--sans);color:var(--acc);margin-bottom:14px}
+.lead{font:400 34px/1.4 var(--sans);color:var(--mut);letter-spacing:-.005em;text-wrap:pretty}
+.lead b{color:var(--fg);font-weight:600}
+.mono{font-family:var(--mono)}
+.ln{display:block;overflow:hidden;padding-bottom:.14em;margin-bottom:-.14em}
+.ln>.lw{display:block}
+.grad-txt{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;padding-right:.05em}
+
+/* ═════════════ Grade de conteúdo ═════════════
+   .hd = bloco do título (topo), .bd = área de conteúdo abaixo dele.
+   Para composições livres, posicione peças com position:absolute no canvas 1920×1080. */
+.hd{position:absolute;left:120px;top:140px;width:1680px}
+.hd .lead{margin-top:24px;width:1100px}
+.bd{position:absolute;left:120px;right:120px;top:330px;bottom:150px}
+.hd.sm + .bd{top:300px}
+/* as grades alinham pelo topo; quem deve ocupar a altura toda (como .duo) usa height:100% */
+.g2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:40px;align-items:start}
+.g3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:32px;align-items:start}
+.split{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:60px;align-items:start}
+.stack{display:flex;flex-direction:column;gap:18px}
+.full{height:100%}
+
+/* ═════════════ Peças ═════════════ */
+.ic{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.well{flex:none;width:76px;height:76px;border-radius:50%;background:var(--well);display:grid;place-items:center;color:var(--fg);
+  box-shadow:inset 0 1px 0 color-mix(in srgb,var(--w) 70%,transparent),inset 0 -1px 0 color-mix(in srgb,var(--black) 4%,transparent)}
+.well .ic{width:34px;height:34px}
+.well.sm{width:60px;height:60px}.well.sm .ic{width:26px;height:26px}
+.well.hot{background:var(--grad-p);color:var(--ink)}
+.well.cool{background:var(--grad-s);color:var(--ink)}
+.well.ok{background:var(--green-soft);color:var(--green-txt)}
+.well.no{background:var(--red-soft);color:var(--red-txt)}
+.card{position:relative;isolation:isolate;border-radius:30px;background:var(--card);box-shadow:inset 0 1px 0 var(--w),var(--glass-shadow)}
+[data-tema="vidro"] .lt .card{background:linear-gradient(140deg,var(--glass-hi),var(--glass-lo));border:1.5px solid var(--glass-edge);
+  box-shadow:inset 0 1px 0 var(--w),inset 0 -14px 28px -20px color-mix(in srgb,var(--t) 35%,transparent),var(--glass-shadow)}
+[data-tema="vidro"] .lt .card::before{content:"";position:absolute;inset:0;z-index:-1;border-radius:inherit;pointer-events:none;
+  background:linear-gradient(125deg,color-mix(in srgb,var(--w) 55%,transparent) 0%,transparent 34%,transparent 72%,color-mix(in srgb,var(--w) 22%,transparent) 100%)}
+[data-tema="vidro"] .frame.cur .lt .card{-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur)}
+[data-tema="vidro"] .lt .well:not(.hot):not(.cool):not(.ok):not(.no){background:color-mix(in srgb,var(--w) 62%,transparent);box-shadow:inset 0 1px 0 var(--w),0 0 0 1px var(--glass-edge)}
+.dk .card{background:color-mix(in srgb,var(--night-card) 70%,transparent);box-shadow:0 0 0 1px color-mix(in srgb,var(--w) 9%,transparent),0 30px 60px -30px color-mix(in srgb,var(--black) 60%,transparent)}
+.hot-card{position:relative;border-radius:34px;background:var(--grad);color:var(--ink);box-shadow:var(--glass-shadow)}
+.ink-card{border-radius:30px;background:var(--ink);color:var(--paper)}
+.pill{display:inline-flex;align-items:center;gap:14px;height:64px;padding:0 28px;border-radius:999px;font:500 26px var(--sans)}
+.dot{width:16px;height:16px;border-radius:50%;background:var(--green);flex:none}
+.dot.p{background:var(--p)}.dot.s{background:var(--s)}
+.tag{display:inline-grid;place-items:center;height:40px;padding:0 16px;border-radius:999px;font:600 20px var(--sans);background:var(--p);color:var(--ink)}
+.tag.s{background:var(--s)}
+.chk{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:var(--green);color:var(--w);flex:none}
+.chk svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.chk.sm{width:34px;height:34px}.chk.sm svg{width:18px;height:18px}
+.chk.no{background:var(--red-txt)}
+
+/* cartão de item: ícone + título + texto */
+.it{display:flex;gap:24px;align-items:flex-start;padding:30px 34px 30px 28px}
+.it h2{font:600 34px/1.15 var(--sans);letter-spacing:-.02em}
+.it p{margin-top:8px;font:400 27px/1.38 var(--sans);color:var(--mut)}
+.it.sm{padding:22px 28px 22px 22px}.it.sm h2{font-size:29px}.it.sm p{font-size:24px}
+
+/* dois lados (comparação) */
+.duo{position:relative;height:100%;padding:44px 48px;border-radius:36px;display:flex;flex-direction:column;color:var(--ink);box-shadow:var(--glass-shadow)}
+.duo.p{background:var(--grad-p)}.duo.s{background:var(--grad-s)}
+.duo .top{display:flex;align-items:center;gap:20px;font:500 32px var(--sans)}
+.duo .well{background:color-mix(in srgb,var(--w) 42%,transparent);color:var(--ink);box-shadow:none}
+.duo h2{margin-top:48px;font:500 88px/1 var(--sans);letter-spacing:-.05em}
+.duo p{margin-top:auto;font:400 30px/1.38 var(--sans)}
+
+/* tabela */
+.tbl{display:flex;flex-direction:column;gap:14px}
+.tr{display:grid;grid-template-columns:300px minmax(0,1fr) minmax(0,1fr);align-items:center;gap:24px;padding:0 34px;min-height:96px;border-radius:26px}
+.tr.th{min-height:64px;background:none;box-shadow:none;border:0}
+.tr.th::before{display:none}
+.tr.th span{display:flex;align-items:center;gap:14px;font:600 30px var(--sans)}
+.tr .k{font:500 26px var(--sans);color:var(--mut)}
+.tr .v{font:400 29px/1.3 var(--sans)}
+
+/* lista numerada / passos */
+.steps{list-style:none;display:flex;flex-direction:column;gap:14px}
+.steps li{display:flex;align-items:center;gap:20px;font:400 29px/1.3 var(--sans);color:var(--mut);transition:color .4s}
+.steps li b{flex:none;width:52px;height:52px;border-radius:50%;display:grid;place-items:center;background:var(--well);color:var(--fg);font:600 24px var(--mono);transition:background .4s,color .4s}
+.steps li.on{color:var(--fg)}
+.steps li.now b{background:var(--p);color:var(--ink)}
+
+/* terminal com checklist (roteiro de demo) */
+.term{border-radius:30px;background:var(--ink);color:var(--paper);overflow:hidden}
+.term .bar{height:64px;display:flex;align-items:center;gap:12px;padding:0 26px;border-bottom:1px solid color-mix(in srgb,var(--w) 8%,transparent);font:400 22px var(--mono);color:var(--mut-dk)}
+.term .bar .ic{width:20px;height:20px}
+.term ol{padding:14px 0;list-style:none}
+.term li{display:grid;grid-template-columns:56px 80px minmax(0,1fr);align-items:center;gap:8px;padding:18px 34px;font:400 25px/1.35 var(--sans);color:var(--mut-dk);opacity:.55;transition:opacity .4s}
+.term li.on{opacity:1}
+.term li .n{font:500 24px var(--mono);color:var(--p-2)}
+.term li b{display:block;font:600 32px var(--sans);color:var(--paper);letter-spacing:-.02em}
+.term li .s{width:34px;height:34px;border-radius:50%;border:2.5px solid var(--wire-dk);display:grid;place-items:center}
+.term li .s svg{width:18px;height:18px;stroke:var(--w);fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;opacity:0;transition:opacity .3s}
+.term li.on .s{background:var(--green);border-color:var(--green)}
+.term li.on .s svg{opacity:1}
+
+/* trilha de passos (cabo com pinos): <div class="track" data-now="2" data-total="5" data-label="Passo 2 de 5"> */
+.track{display:flex;align-items:center;gap:24px;font:500 26px var(--sans);color:var(--mut);height:40px;margin-bottom:18px}
+.track .rail{position:relative;height:22px}
+.track .rail::before{content:"";position:absolute;left:8px;right:8px;top:10px;height:2px;background:var(--line)}
+.track .rail b{position:absolute;left:8px;top:10px;height:2px;background:var(--p);transform-origin:left}
+.track .rail i{position:absolute;top:2px;width:18px;height:18px;margin-left:-9px;border-radius:50%;background:var(--bg);border:2.5px solid var(--wire)}
+.track .rail i.done{background:var(--ink);border-color:var(--ink)}
+.track .rail i.now{background:var(--p);border-color:var(--p);border-radius:4px}
+
+/* fios e cursor */
+.wires{position:absolute;left:0;top:0;width:1920px;height:1080px;pointer-events:none;overflow:visible;z-index:1}
+.wires .w{fill:none;stroke:var(--wire);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.wires .w.p{stroke:var(--p)}.wires .w.s{stroke:var(--s)}.wires .w.d{stroke-dasharray:2 12}
+.dk .wires .w{stroke:var(--wire-dk)}
+.cursor{position:absolute;width:46px;height:56px;z-index:6;pointer-events:none;filter:drop-shadow(0 8px 14px color-mix(in srgb,var(--ink) 28%,transparent))}
+.cursor svg{display:block;width:100%;height:100%;overflow:visible;transform-origin:8px 6px}
+.cursor .c-body{fill:var(--ink);stroke:var(--w);stroke-width:2.4;stroke-linejoin:round}
+
+/* botão */
+.btn{display:inline-flex;align-items:center;gap:16px;height:80px;padding:0 14px 0 38px;border-radius:999px;background:var(--ink);color:var(--w);font:500 30px var(--sans);text-decoration:none;transition:transform .3s var(--ease)}
+@media (hover:hover){.btn:hover{transform:translateY(-3px)}}
+.btn:active{transform:scale(.96);transition-duration:.15s}
+.btn:focus-visible{outline:3px solid var(--p);outline-offset:4px}
+.btn span{width:56px;height:56px;border-radius:50%;background:var(--grad-p);display:grid;place-items:center;color:var(--ink)}
+.btn .ic{width:26px;height:26px}
+
+/* ═════════════ Código ═════════════
+   <pre data-lang="ts"> recebe destaque de sintaxe. .hl marca linhas: --l (linha inicial), --c (quantas). */
+.code{position:relative;background:color-mix(in srgb,var(--codebg) 88%,transparent);color:var(--codefg);border-radius:28px;overflow:hidden;border:1px solid color-mix(in srgb,var(--ink) 7%,transparent);
+  --lh:48px;--fs:28px;--pad:24px}
+.code.sm{--fs:23px;--lh:38px;--pad:22px}
+.code .bar{height:64px;display:flex;align-items:center;gap:14px;padding:0 26px;border-bottom:1px solid color-mix(in srgb,var(--ink) 7%,transparent);font:400 23px var(--mono);color:var(--mut)}
+.code .bar .fi{width:34px;height:34px;border-radius:50%;background:var(--w);display:grid;place-items:center;color:var(--ink)}
+.code .bar .fi .ic{width:18px;height:18px}
+.code .bar .sig{margin-left:auto;display:flex;align-items:center;gap:10px;font:500 22px var(--sans);color:var(--ink)}
+.code pre{position:relative;z-index:1;margin:0;padding:var(--pad) 30px;font:400 var(--fs)/var(--lh) var(--mono);white-space:pre}
+.code .hl{position:absolute;left:12px;right:12px;z-index:0;border-radius:10px;top:calc(64px + var(--pad) + (var(--l) - 1)*var(--lh));height:calc(var(--c,1)*var(--lh));background:var(--p-wash);opacity:0;transition:opacity .4s}
+.code .hl.now,.code .hl.fixed{opacity:1}
+.code .k{color:var(--p-txt)}.code .t{color:var(--s-txt)}.code .s{color:var(--green-txt)}.code .n{color:var(--code-num)}.code .c{color:var(--faint);font-style:italic}
+.code.dark{background:#141518;color:#e8e6df;border-color:rgba(255,255,255,.06)}
+.code.dark .bar{color:#9aa1ad;border-color:rgba(255,255,255,.08)}
+.code.dark .bar .fi{background:#26282d;color:#e8e6df}
+.code.dark .k{color:var(--p-2)}.code.dark .t{color:var(--s-2)}.code.dark .s{color:#a5d68a}.code.dark .n{color:#f6c177}.code.dark .c{color:#6f7785}
+
+/* ═════════════ Vídeo (ampliável para o slide inteiro) ═════════════ */
+.vid{position:absolute;margin:0;z-index:8;border-radius:28px;overflow:hidden;background:var(--ink);
+  box-shadow:0 0 0 1.5px color-mix(in srgb,var(--w) 70%,transparent),0 30px 60px -34px color-mix(in srgb,var(--ink) 55%,transparent);
+  transition:left .5s var(--ease-out),top .5s var(--ease-out),width .5s var(--ease-out),height .5s var(--ease-out),border-radius .5s var(--ease-out)}
+.vid video{display:block;width:100%;height:100%;object-fit:cover;background:var(--ink)}
+.vid.big{left:0!important;top:0!important;width:1920px!important;height:1080px!important;border-radius:0;z-index:30}
+.vid .vtag{position:absolute;left:16px;top:16px;display:flex;align-items:center;gap:10px;padding:8px 16px 8px 10px;border-radius:999px;pointer-events:none;background:color-mix(in srgb,var(--ink) 78%,transparent);color:var(--paper);font:500 19px var(--sans);transition:opacity .3s}
+.vid .vtag .ic{width:22px;height:22px;color:var(--p-2)}
+.vid.playing .vtag,.vid.big .vtag{opacity:0}
+.vid .vbig{position:absolute;right:16px;top:16px;width:52px;height:52px;border-radius:16px;display:grid;place-items:center;background:color-mix(in srgb,var(--ink) 70%,transparent);color:var(--paper);transition:background .2s}
+.vid .vbig:hover{background:var(--p-txt)}
+.vid .vbig:focus-visible{outline:3px solid var(--p);outline-offset:2px}
+.vid .vbig svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.vid .vbig .shrink,.vid.big .vbig .grow{display:none}
+.vid.big .vbig .shrink{display:block}
+
+/* ═════════════ Arquétipos ═════════════ */
+/* capa */
+/* cada linha do título grande cabe em ~900px (10 a 12 caracteres a 168px); passou disso, quebre em mais linhas */
+.capa .giant{position:absolute;left:112px;top:200px;max-width:960px;font:500 168px/1.02 var(--sans);letter-spacing:-.05em;white-space:nowrap}
+.capa .giant .ln{padding-bottom:.08em;margin-bottom:-.04em}
+.capa .giant .ln:last-child>.lw{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;padding-right:.05em}
+[data-tema="cabo"] .capa .giant .ln:last-child>.lw{background:none;color:var(--fg)}
+.capa .sub{position:absolute;left:120px;top:610px;width:860px;font:500 42px/1.2 var(--sans);letter-spacing:-.025em;text-wrap:balance}
+.capa .acts{position:absolute;left:120px;top:800px;display:flex;align-items:center;gap:30px}
+.capa .by{font:500 30px var(--sans);color:var(--mut)}
+.capa .stage{position:absolute;left:1150px;top:180px;width:650px}
+.capa .stage h2{font:600 34px var(--sans);letter-spacing:-.03em;margin-bottom:22px}
+/* divisor (escuro) */
+.div .num{position:absolute;right:60px;top:130px;font:600 600px/1 var(--sans);letter-spacing:-.06em;color:transparent;-webkit-text-stroke:3px color-mix(in srgb,var(--p-2) 60%,transparent);z-index:1}
+.div .part{position:absolute;left:120px;top:250px;display:flex;align-items:center;gap:16px;font:500 28px var(--mono);color:var(--on-dark)}
+.div .part .bar{display:flex;gap:8px}
+.div .part .bar i{width:46px;height:8px;border-radius:8px;background:var(--night-well)}
+.div .part .bar i.on{background:var(--grad)}
+.div h1{position:absolute;left:114px;top:320px;width:1200px;font:500 140px/1.04 var(--sans);letter-spacing:-.045em;text-wrap:balance}
+.div .sub{position:absolute;left:120px;top:690px;width:1150px;font:400 36px/1.4 var(--sans);color:var(--on-dark)}
+.div .who{position:absolute;left:120px;top:812px;display:flex;align-items:center;gap:20px;height:96px;padding:0 36px 0 14px;border-radius:999px;background:var(--night-card);box-shadow:0 0 0 1px color-mix(in srgb,var(--w) 8%,transparent);font:500 32px var(--sans)}
+.div .who b{width:70px;height:70px;border-radius:50%;background:var(--grad);display:grid;place-items:center;color:var(--w);font:600 32px var(--sans)}
+.div .who small{color:var(--mut);font:400 28px var(--sans)}
+/* frase de impacto (escuro) */
+.frase h1{position:absolute;left:112px;top:220px;width:1560px;font:500 124px/1.03 var(--sans);letter-spacing:-.05em;text-wrap:balance}
+.frase h1 .ln:last-child>.lw{background:linear-gradient(90deg,var(--p-2),var(--t) 50%,var(--s-2));-webkit-background-clip:text;background-clip:text;color:transparent;padding-right:.05em}
+.frase .lead{position:absolute;left:120px;top:780px;width:1100px;color:var(--on-dark)}
+/* número grande */
+.big-n{font:600 168px/1 var(--sans);letter-spacing:-.06em}
+/* referências */
+.refs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 22px;list-style:none;align-content:start}
+.refs li{display:flex;gap:22px;align-items:flex-start;padding:24px 30px 24px 22px;font:400 24px/1.4 var(--sans);min-height:150px}
+.refs li b{font-weight:600}
+.refs li small{display:inline-block;margin-bottom:6px;font:600 18px var(--sans);padding:3px 12px;border-radius:999px;background:var(--well);color:var(--mut)}
+/* encerramento */
+.fim .k2{position:absolute;left:120px;top:220px;font:500 44px var(--sans);letter-spacing:-.03em;color:var(--mut)}
+.fim .giant{position:absolute;left:110px;top:300px;font:500 176px/1.05 var(--sans);letter-spacing:-.05em;white-space:nowrap}
+.fim .lead{position:absolute;left:120px;top:580px;width:820px;color:var(--fg)}
+.fim .by{position:absolute;left:120px;top:780px;display:flex;gap:12px}
+.fim .by span{height:72px;padding:0 30px;border-radius:999px;display:grid;place-items:center;font:500 28px var(--sans)}
+.fim .sum{position:absolute;left:1230px;top:260px;width:570px;display:flex;flex-direction:column;gap:20px}
+
+/* ═════════════ Entradas ═════════════
+   .a entra ao chegar no slide (--i ordena). Variações: .fr da direita, .fl da esquerda, .pp pop, .fd fade.
+   .at com --t: atraso explícito em ms. data-step="n": aparece no n-ésimo avanço (→). */
+@keyframes rise{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:none}}
+@keyframes fromR{from{opacity:0;transform:translateX(80px)}to{opacity:1;transform:none}}
+@keyframes fromL{from{opacity:0;transform:translateX(-80px)}to{opacity:1;transform:none}}
+@keyframes pop{from{opacity:0;transform:scale(.86)}to{opacity:1;transform:none}}
+@keyframes lineup{from{transform:translateY(108%)}to{transform:none}}
+@keyframes draw{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
+@keyframes grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes stamp{0%{opacity:0;transform:scale(.4) rotate(-12deg)}60%{opacity:1;transform:scale(1.08)}100%{opacity:1;transform:none}}
+.enter .a{animation:rise .9s var(--ease) both;animation-delay:calc(var(--b,0ms) + 220ms + var(--i,0)*90ms)}
+.enter .a.fr{animation-name:fromR}.enter .a.fl{animation-name:fromL}.enter .a.pp{animation-name:pop}.enter .a.fd{animation-name:fade}
+.enter .ln>.lw{animation:lineup 1s var(--ease) both;animation-delay:calc(var(--b,0ms) + var(--j,0)*100ms)}
+.draw{stroke-dasharray:1;stroke-dashoffset:0}
+.enter .draw{animation:draw 1.2s var(--ease) both;animation-delay:calc(var(--b,0ms) + 450ms + var(--i,0)*140ms)}
+.enter .cable .draw{animation-duration:1.8s;animation-delay:calc(var(--b,0ms) + 100ms)}
+.enter .at{animation-delay:calc(var(--b,0ms) + var(--t,0ms))!important}
+.enter .track .rail b{animation:grow 1s var(--ease) both;animation-delay:calc(var(--b,0ms) + 300ms)}
+.enter .stamp{animation:stamp .6s var(--ease-out) both;animation-delay:calc(var(--b,0ms) + var(--t,900ms))}
+.js .st{opacity:0;transform:translateY(20px);transition:opacity .5s var(--ease),transform .6s var(--ease)}
+.js .st.on{opacity:1;transform:none}
+.code .hl.st{transform:none}
+
+/* ═════════════ Slides deste deck (CSS específico) ═════════════
+   Escreva aqui os ajustes de cada slide, sempre com o id: #s3 .algo{...} */
+
+/* tema voxel: cartões sólidos com espessura de bloco (sombra deslocada para cima e à direita) */
+[data-tema="voxel"] .lt .card{border:1.5px solid color-mix(in srgb,var(--p) 14%,var(--w));
+  box-shadow:inset 0 1px 0 var(--w),4px -4px 0 color-mix(in srgb,var(--p) 18%,var(--w)),8px -8px 0 color-mix(in srgb,var(--p) 12%,var(--white)),var(--glass-shadow)}
+[data-tema="voxel"] .title{letter-spacing:-.04em}
+.vox{position:absolute;display:block}
+.cube{display:block}
+.cube .tp{fill:color-mix(in srgb,var(--c) 52%,var(--w))}.cube .fr{fill:var(--c)}.cube .sd{fill:color-mix(in srgb,var(--c) 58%,var(--ink))}
+.cube.l1{--c:var(--p-2)}.cube.l2{--c:var(--p)}.cube.l3{--c:var(--p-txt)}.cube.l4{--c:var(--s)}
+.capa .sub{width:900px}
+.div h1{width:1060px}
+
+/* s3 · vetores */
+#s3 .vecs{padding:34px 36px;display:flex;flex-direction:column;gap:16px;margin-top:40px}
+#s3 .cap{font:400 22px var(--mono);color:var(--mut)}
+#s3 .vrow{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:20px}
+#s3 .vrow.near{background:var(--p-soft)}
+#s3 .vlabel{width:120px;font:500 26px var(--mono);color:var(--fg)}
+#s3 .cell{width:84px;height:60px;border-radius:12px;display:grid;place-items:center;font:500 23px var(--mono)}
+#s3 .v1{background:var(--p-2);color:var(--ink);box-shadow:3px -3px 0 var(--p),6px -6px 0 color-mix(in srgb,var(--p) 70%,var(--ink))}
+#s3 .v2{background:var(--p);color:var(--ink);box-shadow:3px -3px 0 color-mix(in srgb,var(--p) 75%,var(--ink)),6px -6px 0 color-mix(in srgb,var(--p) 55%,var(--ink))}
+#s3 .v3{background:var(--p-txt);color:var(--w);box-shadow:3px -3px 0 color-mix(in srgb,var(--p-txt) 70%,var(--ink)),6px -6px 0 color-mix(in srgb,var(--p-txt) 50%,var(--ink))}
+#s3 .v4{background:var(--well-lt);color:var(--mut);box-shadow:3px -3px 0 color-mix(in srgb,var(--well-lt) 80%,var(--ink)),6px -6px 0 color-mix(in srgb,var(--well-lt) 65%,var(--ink))}
+
+/* s4 · linha do tempo */
+#s4 .tl{position:absolute;left:120px;right:120px;top:410px;display:grid;grid-template-columns:repeat(5,minmax(0,1fr))}
+#s4 .tl .c{padding-right:30px}
+#s4 .tl .top{display:flex;align-items:center;height:72px}
+#s4 .tl .cube{width:68px;height:68px;flex:none}
+#s4 .tl .top i{flex:1;height:4px;margin:0 -30px 0 14px;border-radius:4px;background:var(--wire)}
+#s4 .tl .yr{margin-top:22px;font:500 24px var(--mono);color:var(--p-txt)}
+#s4 .tl h2{margin-top:6px;font:600 34px/1.15 var(--sans);letter-spacing:-.02em}
+#s4 .tl p:not(.yr){margin-top:8px;font:400 26px/1.35 var(--sans);color:var(--mut)}
+#s4 .ev{position:absolute;left:120px;top:800px;width:1500px}
+
+/* s6 · fluxo */
+#s6 .pc{position:absolute;top:410px;width:360px;padding:34px}
+#s6 .pc .n{font:500 24px var(--mono);color:var(--p-txt)}
+#s6 .pc .well{margin:18px 0 22px}
+#s6 .pc h2{font:600 36px/1.1 var(--sans);letter-spacing:-.02em}
+#s6 .pc p:not(.n){margin-top:10px;font:400 27px/1.35 var(--sans);color:var(--mut)}
+#s6 .wires .pin{fill:var(--p)}
+#s6 .wires .w{stroke-width:4}
+
+/* s8, s12 · demonstração */
+.busca .qc{position:absolute;left:120px;top:450px;width:700px;padding:34px 40px}
+.busca .ql{font:500 22px var(--mono);color:var(--mut);letter-spacing:.06em;text-transform:uppercase}
+.busca .qv{margin:6px 0 22px;font:500 40px/1.2 var(--sans);letter-spacing:-.02em}
+.busca .qv.res{margin-bottom:0;font-family:var(--mono);color:var(--p-txt)}
+.busca .panel{position:absolute;left:880px;top:150px;width:920px;height:790px;overflow:hidden}
+.busca .panel .vox{left:30px;top:30px;width:860px;height:730px}
+.busca .hint{position:absolute;right:36px;bottom:30px;font:500 24px var(--mono);color:var(--mut-dk);transition:opacity .4s}
+.busca .trg{position:absolute}
+.busca .trg.on + .hint{opacity:0}
+
+/* s10 · prós e contras */
+#s10 .pc2{padding:34px 40px}
+#s10 .ph{display:flex;align-items:center;gap:20px;margin-bottom:22px}
+#s10 .ph h2{font:600 40px var(--sans);letter-spacing:-.02em}
+#s10 .pl{list-style:none;display:flex;flex-direction:column;gap:18px}
+#s10 .pl li{display:flex;gap:18px;align-items:flex-start}
+#s10 .pl h3{font:600 30px/1.15 var(--sans);letter-spacing:-.015em}
+#s10 .pl p{margin-top:2px;font:400 25px/1.35 var(--sans);color:var(--mut)}
+
+/* s14, s15 · diagramas */
+#s14 .space,#s15 .hnsw{position:absolute;left:100px;top:360px;width:940px;height:600px;overflow:visible}
+#s14 .space{width:900px}
+#s14 .grid{stroke:var(--line);stroke-width:1}
+#s14 .pt .fr{fill:var(--c)}#s14 .pt .tp{fill:color-mix(in srgb,var(--c) 50%,var(--w))}#s14 .pt .sd{fill:color-mix(in srgb,var(--c) 58%,var(--ink))}
+#s14 .pt.a{--c:var(--p-2)}#s14 .pt.b{--c:var(--p)}#s14 .pt.c{--c:var(--p-txt)}
+#s14 .knn{fill:var(--p-wash);stroke:var(--p-txt);stroke-width:3;stroke-dasharray:10 10}
+#s14 .nn{stroke:var(--ink);stroke-width:4;stroke-linecap:round}
+.qring{fill:var(--white);stroke:var(--ink);stroke-width:6}.qdot{fill:var(--ink)}
+.lbl{font:500 24px var(--mono);fill:var(--mut)}.lbl.ink{fill:var(--ink)}
+#s15 .plane{fill:color-mix(in srgb,var(--p) 7%,var(--w));stroke:var(--wire);stroke-width:2}
+#s15 .vert{stroke:var(--wire);stroke-width:2;stroke-dasharray:4 7}
+#s15 .edge{stroke:color-mix(in srgb,var(--p-txt) 45%,var(--wire));stroke-width:2.5}
+#s15 .node{fill:var(--p);stroke:var(--w);stroke-width:3}
+#s15 .path{stroke:var(--p-txt);stroke-width:7;stroke-linecap:round}
+#s15 .hot{fill:var(--p-2);stroke:var(--ink);stroke-width:3.5}
+.steps.sp{position:absolute;left:1110px;top:430px;width:690px;gap:26px}
+.cap2{position:absolute;left:120px;top:968px;font:400 22px var(--sans);color:var(--mut)}
+#s14 .cap2,#s15 .cap2{left:1110px;top:820px;width:690px;line-height:1.4}
+
+/* s16 · código */
+#s16 .code pre{font-size:25px;font-variant-ligatures:none}
+
+/* s18 · referências */
+#s18 .refs li.pend{background:transparent;box-shadow:none;border:2px dashed var(--wire);color:var(--mut)}
+
+/* s19 · encerramento */
+#s19 .by{flex-wrap:wrap;width:1060px}
+#s19 .by span{font-size:26px}
+
+
+/* ═════════════ Interface do apresentador ═════════════ */
+#bar{position:fixed;left:0;bottom:0;height:4px;width:100%;z-index:50;background:color-mix(in srgb,var(--ink) 8%,transparent)}
+#bar i{display:block;height:100%;width:100%;background:var(--p);transform-origin:left;transform:scaleX(0);transition:transform .8s var(--ease)}
+#dock{position:fixed;left:50%;bottom:22px;z-index:60;transform:translateX(-50%);display:flex;gap:4px;padding:6px;border-radius:999px;background:color-mix(in srgb,var(--w) 82%,transparent);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);box-shadow:0 0 0 1px color-mix(in srgb,var(--ink) 6%,transparent),0 20px 50px -10px var(--shadow-warm);transition:opacity .35s,transform .35s var(--ease)}
+.js.idle #dock{opacity:0;transform:translate(-50%,16px);pointer-events:none}
+.idle,.idle *{cursor:none!important}
+#dock button{position:relative;width:46px;height:46px;border-radius:50%;display:grid;place-items:center;color:var(--ink-2);transition:background .2s,transform .15s ease-out}
+#dock button:hover{background:color-mix(in srgb,var(--ink) 7%,transparent);color:var(--black)}
+#dock button:active{transform:scale(.96)}
+#dock button svg{width:21px;height:21px}
+#dock .sep{width:1px;margin:10px 4px;background:color-mix(in srgb,var(--ink) 12%,transparent)}
+#dock .pos{display:grid;place-items:center;min-width:80px;font:500 16px var(--mono);font-variant-numeric:tabular-nums}
+#dock button[data-tip]:hover::after{content:attr(data-tip);position:absolute;bottom:58px;left:50%;transform:translateX(-50%);white-space:nowrap;padding:7px 12px;border-radius:999px;background:var(--ink);color:var(--w);font:500 14px var(--sans)}
+#dock button:focus-visible,.edge:focus-visible,#pal input:focus-visible{outline:2px solid var(--p);outline-offset:2px}
+.edge{position:fixed;top:0;bottom:0;width:9vw;z-index:40;opacity:0;display:grid;place-items:center;color:var(--ink);transition:opacity .25s}
+.edge:hover,.edge:focus-visible{opacity:1}.edge.l{left:0}.edge.r{right:0}
+.edge span{width:56px;height:56px;border-radius:50%;background:color-mix(in srgb,var(--w) 85%,transparent);display:grid;place-items:center;box-shadow:0 10px 30px -10px color-mix(in srgb,var(--ink) 40%,transparent)}
+.edge svg{width:24px;height:24px}
+.idle .edge,body.ov .edge{display:none}
+#notes{position:fixed;left:16px;right:16px;bottom:16px;z-index:55;padding:24px 32px 92px;border-radius:28px;background:color-mix(in srgb,var(--ink) 94%,transparent);color:var(--paper);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);transform:translateY(120%);transition:transform .5s var(--ease);display:grid;grid-template-columns:1fr 240px;gap:40px}
+body.shownotes #notes{transform:none}
+#notes .nh{font:500 15px var(--sans);color:var(--mut-dk);margin-bottom:8px}
+#notes p{font:400 24px/1.42 var(--sans);max-width:1200px}
+#notes .nx{margin-top:10px;color:var(--mut-dk);font-size:17px}
+#notes .tm{text-align:right;font:500 50px var(--mono);font-variant-numeric:tabular-nums;color:var(--p-2)}
+#notes .tm small{display:block;font:500 15px var(--sans);color:var(--mut-dk)}
+#pal{position:fixed;inset:0;z-index:90;display:none;align-items:flex-start;justify-content:center;padding-top:14vh;background:color-mix(in srgb,var(--ink) 25%,transparent);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+#pal.open{display:flex;animation:fade .2s}
+#pal .box{width:min(720px,92vw);border-radius:26px;background:color-mix(in srgb,var(--w) 94%,transparent);box-shadow:0 0 0 1px color-mix(in srgb,var(--ink) 6%,transparent),0 40px 100px -20px color-mix(in srgb,var(--ink) 45%,transparent);overflow:hidden}
+#pal input{width:100%;padding:22px 26px;background:none;border:0;border-bottom:1px solid color-mix(in srgb,var(--ink) 8%,transparent);font:500 22px var(--sans);color:var(--ink);outline:none;caret-color:var(--p)}
+#pal ul{list-style:none;max-height:min(52vh,460px);overflow:auto;padding:8px}
+#pal li{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:12px 16px;border-radius:14px;font:500 18px var(--sans);color:var(--ink-2);cursor:pointer}
+#pal li.sel{background:var(--p-soft);color:var(--ink)}
+#pal kbd,#help kbd{font:500 14px var(--mono);padding:3px 9px;border-radius:8px;background:color-mix(in srgb,var(--ink) 7%,transparent);color:var(--ink-2)}
+#pal .empty{padding:24px;color:var(--mut);font:400 17px var(--sans)}
+#pal .foot2{display:flex;gap:18px;padding:12px 20px;border-top:1px solid color-mix(in srgb,var(--ink) 6%,transparent);font:400 14px var(--sans);color:var(--mut)}
+#help{position:fixed;inset:0;z-index:95;display:none;place-items:center;background:color-mix(in srgb,var(--ink) 25%,transparent);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+#help.open{display:grid}
+#help .box{width:min(880px,92vw);padding:34px 40px;border-radius:30px;background:var(--w);box-shadow:0 40px 100px -20px color-mix(in srgb,var(--ink) 45%,transparent)}
+#help h2{font:500 30px var(--sans);letter-spacing:-.02em;margin-bottom:22px}
+#help dl{display:grid;grid-template-columns:1fr 1fr;gap:6px 44px}
+#help dl div{display:flex;justify-content:space-between;gap:12px;font:400 17px var(--sans);color:var(--ink-2);padding:8px 0;border-bottom:1px solid color-mix(in srgb,var(--ink) 7%,transparent)}
+#help dl div span{display:flex;gap:6px}
+#toast{position:fixed;left:50%;top:24px;z-index:99;transform:translate(-50%,-20px);opacity:0;padding:14px 24px;border-radius:999px;background:var(--ink);color:var(--w);font:500 17px var(--sans);transition:opacity .3s,transform .4s var(--ease);pointer-events:none;max-width:90vw;text-align:center}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+#blank{position:fixed;inset:0;z-index:80;background:var(--black);display:none}
+#blank.on{display:block}
+#laser{position:fixed;z-index:70;left:0;top:0;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;pointer-events:none;display:none;background:radial-gradient(circle,var(--w) 0 18%,var(--p) 22%,color-mix(in srgb,var(--p) 45%,transparent) 55%,transparent 72%);filter:drop-shadow(0 0 10px var(--p))}
+body.laser #laser{display:block}
+body.laser,body.laser *{cursor:none!important}
+.sr{position:absolute;left:-9999px}
+
+/* ═════════════ PDF / impressão (?pdf ou tecla P) ═════════════ */
+@page{size:1920px 1080px;margin:0}
+html.pdf,html.pdf body{background:var(--w);overflow:visible;height:auto}
+html.pdf #wall{position:static;transform:none!important;width:1920px!important;height:auto!important}
+html.pdf #cables{display:none}
+html.pdf .frame{position:relative;left:auto!important;top:auto!important;border-radius:0;box-shadow:none;break-after:page;page-break-after:always;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+html.pdf .frame:last-of-type{break-after:auto;page-break-after:auto}
+html.pdf *{animation:none!important;transition:none!important}
+html.pdf .st{opacity:1!important;transform:none!important}
+html.pdf .code .hl{opacity:0!important}
+html.pdf .cursor{display:none}
+html.pdf .ui,.pdf .ui{display:none!important}
+@media print{.ui{display:none!important}}
+
+@media (prefers-reduced-motion:reduce){
+  .enter .a,.enter .ln>.lw,.enter .draw,.enter .cursor,.enter .stamp,.enter .track .rail b{animation:none!important}
+  .st{transform:none;transition:opacity .3s}
+  .enter .orb{animation:fade .6s ease both!important}
+}
+</style>
+</head>
+<!--
+  data-marca: nome no cabeçalho · data-ano: canto direito do cabeçalho
+  data-rodape: coluna do meio do rodapé · data-rodape2: terceira coluna quando o slide não tem data-who
+  data-parede: "fluxo" (serpentina com conectores e cursor) ou "cabo" (grade ligada por um cabo com plugues)
+  data-orbes: "auto" (orbes de cor nos slides claros) ou "off"
+-->
+<body data-marca="Bancos de Dados Vetoriais" data-ano="2026" data-rodape="BAN II" data-rodape2="" data-parede="cabo" data-orbes="off">
+
+<!-- logo do cabeçalho: um SVG pequeno, que use currentColor -->
+<template id="logo"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 20L34 12 20 4 6 12z" fill="var(--p)"/><path d="M20 4l14 8v16l-14 8-14-8V12zM6 12l14 8 14-8M20 20v16" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"/></svg></template>
+
+<!-- ícones de traço: use com <svg class="ic"><use href="#i-nome"/></svg> -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5.5 5.5"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 5.5h16v10H9.5L4 19.5z"/><path d="M8 9.5h8M8 12.5h5"/></symbol>
+  <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 3.8l2.5 5.2 5.7.8-4.1 4 1 5.6L12 16.8l-5.1 2.6 1-5.6-4.1-4 5.7-.8z"/></symbol>
+  <symbol id="i-image" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="14" rx="2"/><circle cx="9" cy="10" r="1.8"/><path d="M4 17l5-4.5 4 3.5 3-2.5 4.5 4"/></symbol>
+  <symbol id="i-flask" viewBox="0 0 24 24"><path d="M9.5 3.5h5M10.5 3.5v6L5 19a1.3 1.3 0 001.1 2h11.8A1.3 1.3 0 0019 19l-5.5-9.5v-6"/><path d="M7.5 15h9"/></symbol>
+  <symbol id="i-bulb" viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3.5a6 6 0 00-3.5 10.9c.6.5 1 1.2 1 2v.6h5v-.6c0-.8.4-1.5 1-2A6 6 0 0012 3.5z"/></symbol>
+  <symbol id="i-db" viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="7.5" ry="2.8"/><path d="M4.5 6v12c0 1.5 3.4 2.8 7.5 2.8s7.5-1.3 7.5-2.8V6M4.5 12c0 1.5 3.4 2.8 7.5 2.8s7.5-1.3 7.5-2.8"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></symbol>
+  <symbol id="i-cursor" viewBox="0 0 24 24"><path d="M5 3.5l13 7.2-5.6 1.6 3.4 6.4-2.6 1.4-3.4-6.4L5.6 17.7z"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c.8-3.6 3.6-5.5 7-5.5s6.2 1.9 7 5.5"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8.5" r="3"/><path d="M3.5 19c.7-3 2.8-4.6 5.5-4.6s4.8 1.6 5.5 4.6"/><circle cx="16.5" cy="9" r="2.5"/><path d="M16 14.4c2.3.1 4 1.6 4.5 4.1"/></symbol>
+  <symbol id="i-layout" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><path d="M3.5 9h17M9 9v10.5"/></symbol>
+  <symbol id="i-layers" viewBox="0 0 24 24"><path d="M12 4l8.5 4.5L12 13 3.5 8.5z"/><path d="M3.5 12.5L12 17l8.5-4.5M3.5 16.5L12 21l8.5-4.5"/></symbol>
+  <symbol id="i-box" viewBox="0 0 24 24"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></symbol>
+  <symbol id="i-code" viewBox="0 0 24 24"><path d="M8.5 7L3.5 12l5 5M15.5 7l5 5-5 5"/></symbol>
+  <symbol id="i-term" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="15" rx="2"/><path d="M7 9.5l3 2.5-3 2.5M12 15h5"/></symbol>
+  <symbol id="i-doc" viewBox="0 0 24 24"><path d="M7 3.5h7l4 4v13H7z"/><path d="M14 3.5v4h4M9.5 13h6M9.5 16.5h4"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M4.5 5.5A1.5 1.5 0 016 4h5.5v16H6a1.5 1.5 0 01-1.5-1.5zM12.5 4H18a1.5 1.5 0 011.5 1.5v13A1.5 1.5 0 0118 20h-5.5z"/></symbol>
+  <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4 4 0 005.7 0l3-3a4 4 0 00-5.7-5.7l-1 1M14 10a4 4 0 00-5.7 0l-3 3a4 4 0 005.7 5.7l1-1"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></symbol>
+  <symbol id="i-video" viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10.5l5-3v9l-5-3z"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 4l9 16H3z"/><path d="M12 10v4.5M12 17.2v.1"/></symbol>
+  <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20V4M4 20h16M8 16v-4M12 16V8M16 16v-6"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8 10.5V8a4 4 0 018 0v2.5"/></symbol>
+  <symbol id="i-flow" viewBox="0 0 24 24"><rect x="3.5" y="4" width="7" height="5" rx="1.5"/><rect x="13.5" y="15" width="7" height="5" rx="1.5"/><path d="M7 9v4.5a2 2 0 002 2h4.5"/></symbol>
+  <symbol id="i-plug" viewBox="0 0 24 24"><path d="M9 3.5v5M15 3.5v5M6.5 8.5h11v3a5.5 5.5 0 01-11 0zM12 17v3.5"/></symbol>
+  <symbol id="i-bug" viewBox="0 0 24 24"><rect x="7.5" y="8" width="9" height="12" rx="4.5"/><path d="M9.5 8a2.5 2.5 0 015 0M12 12v8M4 13h3.5M16.5 13H20M5 8.5l2.5 1.5M19 8.5L16.5 10M5 18.5l2.5-1.5M19 18.5L16.5 17"/></symbol>
+</svg>
+
+<div id="wall">
+<svg id="cables" aria-hidden="true"></svg>
+
+<section class="slide lt capa" id="s1" data-sec="Abertura" data-who="Pedro" data-title="Bancos vetoriais"
+ data-cable="M-140 980 C 300 1040, 700 900, 1000 1000 S 1500 1140, 2080 1020"
+ data-notes="Pedro abre: “Somos Pedro, Ruan, Vitor e Guilherme, e vamos apresentar bancos de dados vetoriais.” Os cubos à direita são dados que se agrupam por semelhança, e esse é o fio da apresentação. Divisão: Pedro (definição, espaço vetorial e evolução, ~3,5 min), Ruan (contexto, ~3 min), Vitor (vantagens e desvantagens, ~3 min), Guilherme (representação e referências, ~3 min). Avance para a parte 1.">
+  <h1 class="giant" data-split="Bancos|vetoriais"></h1>
+  <p class="sub a" style="--i:2">Como dados viram vetores, se agrupam por significado e são encontrados por proximidade</p>
+  <div class="acts a" style="--i:4"><a class="btn" href="#9" data-goto="9">Ir para a busca <span><svg class="ic" aria-hidden="true"><use href="#i-arrow"/></svg></span></a><span class="by">Pedro, Ruan, Vitor e Guilherme</span></div>
+  <canvas class="vox a fd" data-vox="clusters" style="--i:1;left:1110px;top:150px;width:700px;height:720px" aria-label="Cubos 3D que chegam de fora e se agrupam em três clusters"></canvas>
+</section>
+
+<section class="slide dk div" id="s2" data-sec="Parte 01" data-who="Pedro" data-title="Definição e evolução"
+ data-cable="M-140 300 C 400 260, 700 560, 1000 760 S 1700 1100, 2080 900"
+ data-notes="Pedro assume: “Agora a parte 1: definição e evolução.” O que é o modelo e de onde ele vem.">
+  <canvas class="vox a fd" data-vox="d1" style="left:1190px;top:170px;width:640px;height:640px" aria-hidden="true"></canvas>
+  <p class="part a"><span class="bar"><i class="on"></i><i></i><i></i><i></i></span>Parte 01 de 04</p>
+  <h1 data-split="Definição e|evolução"></h1>
+  <p class="sub a" style="--i:3">O que é o modelo e de onde ele vem</p>
+  <p class="who a" style="--i:5"><b>P</b>Pedro Henrique Urio dos Santos <small>apresenta</small></p>
+</section>
+
+<section class="slide lt" id="s3" data-sec="Definição" data-who="Pedro" data-title="Dados viram vetores"
+ data-notes="Definição: um banco vetorial guarda cada item como um vetor, uma lista de números gerada por um modelo de embedding, e responde por similaridade, devolvendo os vizinhos mais próximos em vez de registros iguais. Aponte as linhas: gato e felino têm números quase iguais, carro destoa. Os valores são ilustrativos; vetores reais têm centenas de dimensões. Fonte: Pan, Wang e Li (2024).">
+  <div class="split" style="position:absolute;left:120px;right:120px;top:150px;grid-template-columns:minmax(0,1fr) 760px">
+    <div>
+      <p class="kick a">O que é?</p>
+      <h1 class="title" data-split="Dados viram|vetores"></h1>
+      <p class="lead a" style="--i:2;margin-top:34px">Um banco que guarda itens como <b>vetores</b> e responde por <b>proximidade</b>: devolve os vizinhos mais próximos, não registros iguais.</p>
+    </div>
+    <div class="vecs card a fr" style="--i:2">
+      <p class="cap">embedding · 6 de D dimensões</p>
+      <div class="vrow near a fr" style="--i:3"><span class="vlabel">gato</span><span class="cell v1">0.82</span><span class="cell v4">0.14</span><span class="cell v3">−0.31</span><span class="cell v1">0.67</span><span class="cell v4">0.05</span><span class="cell v3">−0.48</span></div><div class="vrow near a fr" style="--i:4"><span class="vlabel">felino</span><span class="cell v1">0.79</span><span class="cell v4">0.18</span><span class="cell v3">−0.27</span><span class="cell v1">0.61</span><span class="cell v4">0.09</span><span class="cell v3">−0.52</span></div><div class="vrow a fr" style="--i:5"><span class="vlabel">carro</span><span class="cell v3">−0.44</span><span class="cell v1">0.73</span><span class="cell v2">0.58</span><span class="cell v4">−0.12</span><span class="cell v1">0.86</span><span class="cell v2">0.31</span></div>
+      <p class="cap a" style="--i:7">Gato e felino ficam próximos; carro, longe · valores ilustrativos</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide lt" id="s14" data-sec="Definição" data-who="Pedro" data-title="Cada registro é um ponto no espaço"
+ data-notes="Pedro: se cada item é um vetor, o modelo de dados é um espaço vetorial. Cada registro é um ponto (aqui, uma projeção em 2D; na prática, centenas de dimensões). Avance: (1) parecidos ficam juntos; (2) a consulta também vira um ponto; (3) a busca k-NN devolve os k mais próximos, medidos por cosseno, distância euclidiana ou produto interno.">
+  <div class="hd"><h1 class="title" data-split="Cada registro é|um ponto no espaço"></h1></div>
+  <svg class="space a fl" style="--i:2" viewBox="0 0 900 600" role="img" aria-label="Espaço vetorial em 2D: grupos de animais, veículos e bebidas; a consulta liga-se aos 3 vizinhos mais próximos"><line class="grid" x1="0" y1="0" x2="0" y2="600"/><line class="grid" x1="60" y1="0" x2="60" y2="600"/><line class="grid" x1="120" y1="0" x2="120" y2="600"/><line class="grid" x1="180" y1="0" x2="180" y2="600"/><line class="grid" x1="240" y1="0" x2="240" y2="600"/><line class="grid" x1="300" y1="0" x2="300" y2="600"/><line class="grid" x1="360" y1="0" x2="360" y2="600"/><line class="grid" x1="420" y1="0" x2="420" y2="600"/><line class="grid" x1="480" y1="0" x2="480" y2="600"/><line class="grid" x1="540" y1="0" x2="540" y2="600"/><line class="grid" x1="600" y1="0" x2="600" y2="600"/><line class="grid" x1="660" y1="0" x2="660" y2="600"/><line class="grid" x1="720" y1="0" x2="720" y2="600"/><line class="grid" x1="780" y1="0" x2="780" y2="600"/><line class="grid" x1="840" y1="0" x2="840" y2="600"/><line class="grid" x1="900" y1="0" x2="900" y2="600"/><line class="grid" x1="0" y1="0" x2="900" y2="0"/><line class="grid" x1="0" y1="60" x2="900" y2="60"/><line class="grid" x1="0" y1="120" x2="900" y2="120"/><line class="grid" x1="0" y1="180" x2="900" y2="180"/><line class="grid" x1="0" y1="240" x2="900" y2="240"/><line class="grid" x1="0" y1="300" x2="900" y2="300"/><line class="grid" x1="0" y1="360" x2="900" y2="360"/><line class="grid" x1="0" y1="420" x2="900" y2="420"/><line class="grid" x1="0" y1="480" x2="900" y2="480"/><line class="grid" x1="0" y1="540" x2="900" y2="540"/><line class="grid" x1="0" y1="600" x2="900" y2="600"/><g class="pt a"><rect class="fr" x="150" y="187" width="24" height="24" rx="3"/><polygon class="tp" points="150,187 157,181 180,181 174,187"/><polygon class="sd" points="174,187 180,181 180,205 174,211"/></g><g class="pt a"><rect class="fr" x="280" y="240" width="24" height="24" rx="3"/><polygon class="tp" points="280,240 287,234 310,234 304,240"/><polygon class="sd" points="304,240 310,234 310,258 304,264"/></g><g class="pt a"><rect class="fr" x="269" y="181" width="24" height="24" rx="3"/><polygon class="tp" points="269,181 276,175 299,175 293,181"/><polygon class="sd" points="293,181 299,175 299,199 293,205"/></g><g class="pt a"><rect class="fr" x="237" y="140" width="24" height="24" rx="3"/><polygon class="tp" points="237,140 244,134 267,134 261,140"/><polygon class="sd" points="261,140 267,134 267,158 261,164"/></g><g class="pt a"><rect class="fr" x="187" y="116" width="24" height="24" rx="3"/><polygon class="tp" points="187,116 194,110 217,110 211,116"/><polygon class="sd" points="211,116 217,110 217,134 211,140"/></g><g class="pt a"><rect class="fr" x="183" y="134" width="24" height="24" rx="3"/><polygon class="tp" points="183,134 190,128 213,128 207,134"/><polygon class="sd" points="207,134 213,128 213,152 207,158"/></g><g class="pt a"><rect class="fr" x="249" y="210" width="24" height="24" rx="3"/><polygon class="tp" points="249,210 256,204 279,204 273,210"/><polygon class="sd" points="273,210 279,204 279,228 273,234"/></g><g class="pt a"><rect class="fr" x="241" y="166" width="24" height="24" rx="3"/><polygon class="tp" points="241,166 248,160 271,160 265,166"/><polygon class="sd" points="265,166 271,160 271,184 265,190"/></g><g class="pt a"><rect class="fr" x="240" y="185" width="24" height="24" rx="3"/><polygon class="tp" points="240,185 247,179 270,179 264,185"/><polygon class="sd" points="264,185 270,179 270,203 264,209"/></g><g class="pt a"><rect class="fr" x="204" y="151" width="24" height="24" rx="3"/><polygon class="tp" points="204,151 211,145 234,145 228,151"/><polygon class="sd" points="228,151 234,145 234,169 228,175"/></g><g class="pt a"><rect class="fr" x="154" y="262" width="24" height="24" rx="3"/><polygon class="tp" points="154,262 161,256 184,256 178,262"/><polygon class="sd" points="178,262 184,256 184,280 178,286"/></g><g class="pt a"><rect class="fr" x="305" y="186" width="24" height="24" rx="3"/><polygon class="tp" points="305,186 312,180 335,180 329,186"/><polygon class="sd" points="329,186 335,180 335,204 329,210"/></g><g class="pt a"><rect class="fr" x="296" y="203" width="24" height="24" rx="3"/><polygon class="tp" points="296,203 303,197 326,197 320,203"/><polygon class="sd" points="320,203 326,197 326,221 320,227"/></g><g class="pt b"><rect class="fr" x="694" y="182" width="24" height="24" rx="3"/><polygon class="tp" points="694,182 701,176 724,176 718,182"/><polygon class="sd" points="718,182 724,176 724,200 718,206"/></g><g class="pt b"><rect class="fr" x="692" y="155" width="24" height="24" rx="3"/><polygon class="tp" points="692,155 699,149 722,149 716,155"/><polygon class="sd" points="716,155 722,149 722,173 716,179"/></g><g class="pt b"><rect class="fr" x="627" y="167" width="24" height="24" rx="3"/><polygon class="tp" points="627,167 634,161 657,161 651,167"/><polygon class="sd" points="651,167 657,161 657,185 651,191"/></g><g class="pt b"><rect class="fr" x="681" y="188" width="24" height="24" rx="3"/><polygon class="tp" points="681,188 688,182 711,182 705,188"/><polygon class="sd" points="705,188 711,182 711,206 705,212"/></g><g class="pt b"><rect class="fr" x="701" y="228" width="24" height="24" rx="3"/><polygon class="tp" points="701,228 708,222 731,222 725,228"/><polygon class="sd" points="725,228 731,222 731,246 725,252"/></g><g class="pt b"><rect class="fr" x="631" y="118" width="24" height="24" rx="3"/><polygon class="tp" points="631,118 638,112 661,112 655,118"/><polygon class="sd" points="655,118 661,112 661,136 655,142"/></g><g class="pt b"><rect class="fr" x="658" y="139" width="24" height="24" rx="3"/><polygon class="tp" points="658,139 665,133 688,133 682,139"/><polygon class="sd" points="682,139 688,133 688,157 682,163"/></g><g class="pt b"><rect class="fr" x="572" y="202" width="24" height="24" rx="3"/><polygon class="tp" points="572,202 579,196 602,196 596,202"/><polygon class="sd" points="596,202 602,196 602,220 596,226"/></g><g class="pt b"><rect class="fr" x="591" y="165" width="24" height="24" rx="3"/><polygon class="tp" points="591,165 598,159 621,159 615,165"/><polygon class="sd" points="615,165 621,159 621,183 615,189"/></g><g class="pt b"><rect class="fr" x="556" y="223" width="24" height="24" rx="3"/><polygon class="tp" points="556,223 563,217 586,217 580,223"/><polygon class="sd" points="580,223 586,217 586,241 580,247"/></g><g class="pt b"><rect class="fr" x="681" y="153" width="24" height="24" rx="3"/><polygon class="tp" points="681,153 688,147 711,147 705,153"/><polygon class="sd" points="705,153 711,147 711,171 705,177"/></g><g class="pt b"><rect class="fr" x="693" y="153" width="24" height="24" rx="3"/><polygon class="tp" points="693,153 700,147 723,147 717,153"/><polygon class="sd" points="717,153 723,147 723,171 717,177"/></g><g class="pt b"><rect class="fr" x="603" y="199" width="24" height="24" rx="3"/><polygon class="tp" points="603,199 610,193 633,193 627,199"/><polygon class="sd" points="627,199 633,193 633,217 627,223"/></g><g class="pt c"><rect class="fr" x="448" y="397" width="24" height="24" rx="3"/><polygon class="tp" points="448,397 455,391 478,391 472,397"/><polygon class="sd" points="472,397 478,391 478,415 472,421"/></g><g class="pt c"><rect class="fr" x="462" y="452" width="24" height="24" rx="3"/><polygon class="tp" points="462,452 469,446 492,446 486,452"/><polygon class="sd" points="486,452 492,446 492,470 486,476"/></g><g class="pt c"><rect class="fr" x="367" y="502" width="24" height="24" rx="3"/><polygon class="tp" points="367,502 374,496 397,496 391,502"/><polygon class="sd" points="391,502 397,496 397,520 391,526"/></g><g class="pt c"><rect class="fr" x="437" y="418" width="24" height="24" rx="3"/><polygon class="tp" points="437,418 444,412 467,412 461,418"/><polygon class="sd" points="461,418 467,412 467,436 461,442"/></g><g class="pt c"><rect class="fr" x="502" y="424" width="24" height="24" rx="3"/><polygon class="tp" points="502,424 509,418 532,418 526,424"/><polygon class="sd" points="526,424 532,418 532,442 526,448"/></g><g class="pt c"><rect class="fr" x="380" y="411" width="24" height="24" rx="3"/><polygon class="tp" points="380,411 387,405 410,405 404,411"/><polygon class="sd" points="404,411 410,405 410,429 404,435"/></g><g class="pt c"><rect class="fr" x="471" y="477" width="24" height="24" rx="3"/><polygon class="tp" points="471,477 478,471 501,471 495,477"/><polygon class="sd" points="495,477 501,471 501,495 495,501"/></g><g class="pt c"><rect class="fr" x="464" y="384" width="24" height="24" rx="3"/><polygon class="tp" points="464,384 471,378 494,378 488,384"/><polygon class="sd" points="488,384 494,378 494,402 488,408"/></g><g class="pt c"><rect class="fr" x="501" y="444" width="24" height="24" rx="3"/><polygon class="tp" points="501,444 508,438 531,438 525,444"/><polygon class="sd" points="525,444 531,438 531,462 525,468"/></g><g class="pt c"><rect class="fr" x="449" y="399" width="24" height="24" rx="3"/><polygon class="tp" points="449,399 456,393 479,393 473,399"/><polygon class="sd" points="473,399 479,393 479,417 473,423"/></g><g class="pt c"><rect class="fr" x="480" y="422" width="24" height="24" rx="3"/><polygon class="tp" points="480,422 487,416 510,416 504,422"/><polygon class="sd" points="504,422 510,416 510,440 504,446"/></g><g class="pt c"><rect class="fr" x="409" y="372" width="24" height="24" rx="3"/><polygon class="tp" points="409,372 416,366 439,366 433,372"/><polygon class="sd" points="433,372 439,366 439,390 433,396"/></g><g class="pt c"><rect class="fr" x="513" y="433" width="24" height="24" rx="3"/><polygon class="tp" points="513,433 520,427 543,427 537,433"/><polygon class="sd" points="537,433 543,427 543,451 537,457"/></g><text class="lbl" x="190" y="80">animais</text><text class="lbl" x="620" y="60">veículos</text><text class="lbl" x="430" y="550">bebidas</text><g class="st" data-step="2"><circle class="qring" cx="345" cy="285" r="17"/><circle class="qdot" cx="345" cy="285" r="6"/><text class="lbl ink" x="464" y="293">consulta</text></g><g class="st" data-step="3"><circle class="knn" cx="345" cy="285" r="105"/><line class="nn" x1="345" y1="285" x2="292" y2="252"/><line class="nn" x1="345" y1="285" x2="308" y2="215"/><line class="nn" x1="345" y1="285" x2="317" y2="198"/><text class="lbl ink" x="464" y="329">k = 3</text></g></svg>
+  <ol class="steps sp a" style="--i:4">
+    <li data-step="1"><b>1</b>Parecidos ficam juntos</li>
+    <li data-step="2"><b>2</b>A consulta também vira ponto</li>
+    <li data-step="3"><b>3</b>k-NN devolve os k mais próximos</li>
+  </ol>
+  <p class="cap2 a" style="--i:6">Projeção ilustrativa em 2D · cosseno, euclidiana ou produto interno</p>
+</section>
+
+<section class="slide lt" id="s4" data-sec="Evolução" data-who="Pedro" data-title="Uma evolução, mas não do relacional"
+ data-notes="É uma evolução? Sim, mas não do modelo relacional. A ideia de representar documentos como vetores vem da recuperação de informação, dos anos 1970 (Salton; Manning, Raghavan e Schütze, cap. 6). Entre 2016 e 2017, HNSW e FAISS tornaram viável achar vizinhos em bilhões de vetores. A partir de 2019 surgem os SGBDs vetoriais, como o Milvus, que somam a isso recursos de banco de dados. Podem ser nativos (Milvus, Qdrant) ou extensões (pgvector no PostgreSQL). Passe para o Ruan.">
+  <div class="hd"><h1 class="title" data-split="Uma evolução,|mas não do relacional"></h1></div>
+  <div class="tl"><div class="c a" style="--i:2"><div class="top"><svg class="cube l4 " viewBox="0 0 60 60" aria-hidden="true"><polygon class="tp" points="0,14 14,0 60,0 46,14"/><polygon class="sd" points="46,14 60,0 60,46 46,60"/><rect class="fr" x="0" y="14" width="46" height="46"/></svg><i></i></div><p class="yr">1970</p><h2>Relacional</h2><p>Tabelas e igualdade exata</p></div><div class="c a" style="--i:3"><div class="top"><svg class="cube l3 " viewBox="0 0 60 60" aria-hidden="true"><polygon class="tp" points="0,14 14,0 60,0 46,14"/><polygon class="sd" points="46,14 60,0 60,46 46,60"/><rect class="fr" x="0" y="14" width="46" height="46"/></svg><i></i></div><p class="yr">1975</p><h2>Espaço vetorial</h2><p>Documentos como vetores de termos</p></div><div class="c a" style="--i:4"><div class="top"><svg class="cube l3 " viewBox="0 0 60 60" aria-hidden="true"><polygon class="tp" points="0,14 14,0 60,0 46,14"/><polygon class="sd" points="46,14 60,0 60,46 46,60"/><rect class="fr" x="0" y="14" width="46" height="46"/></svg><i></i></div><p class="yr">2000s</p><h2>NoSQL</h2><p>Escala, ainda com busca exata</p></div><div class="c a" style="--i:5"><div class="top"><svg class="cube l2 " viewBox="0 0 60 60" aria-hidden="true"><polygon class="tp" points="0,14 14,0 60,0 46,14"/><polygon class="sd" points="46,14 60,0 60,46 46,60"/><rect class="fr" x="0" y="14" width="46" height="46"/></svg><i></i></div><p class="yr">2016–17</p><h2>Busca aproximada</h2><p>HNSW e FAISS em bilhões de vetores</p></div><div class="c a" style="--i:6"><div class="top"><svg class="cube l1 " viewBox="0 0 60 60" aria-hidden="true"><polygon class="tp" points="0,14 14,0 60,0 46,14"/><polygon class="sd" points="46,14 60,0 60,46 46,60"/><rect class="fr" x="0" y="14" width="46" height="46"/></svg></div><p class="yr">2019+</p><h2>SGBD vetorial</h2><p>Índices vetoriais com recursos de banco</p></div></div>
+  <p class="lead ev a" style="--i:8"><b>Herda</b> o modelo de espaço vetorial da recuperação de informação e <b>soma</b> recursos de SGBD</p>
+</section>
+
+<section class="slide dk div" id="s5" data-sec="Parte 02" data-who="Ruan" data-title="Contexto de uso"
+ data-cable="M2080 280 C 1600 240, 1300 600, 1000 780 S 300 1120, -140 940"
+ data-notes="Ruan assume: “Agora a parte 2: contexto de uso.” Em que sistemas ele aparece e quando escolhê-lo.">
+  <canvas class="vox a fd" data-vox="d2" style="left:1190px;top:170px;width:640px;height:640px" aria-hidden="true"></canvas>
+  <p class="part a"><span class="bar"><i class="on"></i><i class="on"></i><i></i><i></i></span>Parte 02 de 04</p>
+  <h1 data-split="Contexto|de uso"></h1>
+  <p class="sub a" style="--i:3">Em que sistemas ele aparece e quando escolhê-lo</p>
+  <p class="who a" style="--i:5"><b>R</b>Ruan Carlos da Silva <small>apresenta</small></p>
+</section>
+
+<section class="slide lt" id="s6" data-sec="Contexto" data-who="Ruan" data-title="Do dado bruto à resposta"
+ data-notes="Ruan: o banco vetorial é uma etapa de um fluxo. Avance três vezes: (1) um modelo de embedding transforma cada item em vetor; (2) o vetor entra num índice de vizinhança; (3) na consulta, a pergunta passa pelo mesmo modelo e o banco devolve os vizinhos mais próximos.">
+  <div class="hd"><p class="kick a">Como entra num sistema</p><h1 class="title" data-split="Do dado bruto à resposta"></h1></div>
+  <svg class="wires" viewBox="0 0 1920 1080" aria-hidden="true"><g class="st" data-step="1"><path class="w p" d="M490 560 H550"/><circle cx="550" cy="560" r="8" class="pin"/></g><g class="st" data-step="2"><path class="w p" d="M930 560 H990"/><circle cx="990" cy="560" r="8" class="pin"/></g><g class="st" data-step="3"><path class="w p" d="M1370 560 H1430"/><circle cx="1430" cy="560" r="8" class="pin"/></g></svg>
+  <div class="pc card a" style="--i:2;left:120px"><p class="n">01</p><span class="well"><svg class="ic" aria-hidden="true"><use href="#i-doc"/></svg></span><h2>Coleta</h2><p>Textos, imagens ou registros</p></div><div class="pc card a st" data-step="1" style="--i:3;left:560px"><p class="n">02</p><span class="well"><svg class="ic" aria-hidden="true"><use href="#i-code"/></svg></span><h2>Embedding</h2><p>Um modelo gera o vetor</p></div><div class="pc card a st" data-step="2" style="--i:4;left:1000px"><p class="n">03</p><span class="well"><svg class="ic" aria-hidden="true"><use href="#i-db"/></svg></span><h2>Indexação</h2><p>O vetor entra num índice</p></div><div class="pc card a st" data-step="3" style="--i:5;left:1440px"><p class="n">04</p><span class="well hot"><svg class="ic" aria-hidden="true"><use href="#i-search"/></svg></span><h2>Busca</h2><p>A pergunta vira vetor e acha vizinhos</p></div>
+  <p class="lead a st" data-step="3" style="position:absolute;left:120px;top:820px;width:1500px">Na consulta, a pergunta passa pelo <b>mesmo modelo</b> e vira um ponto ao lado dos dados</p>
+</section>
+
+<section class="slide lt" id="s7" data-sec="Contexto" data-who="Ruan" data-title="Onde a pergunta é “o que é parecido?”"
+ data-notes="Tipos de sistema: IA generativa com RAG (Lewis et al., 2020), busca semântica, recomendação, busca de imagem e vídeo, análise de estruturas químicas (aplicações listadas no artigo do Milvus, Wang et al., 2021). O último cartão é o critério de escolha: dados não estruturados e perguntas de semelhança. Para consultas exatas e transações, o relacional continua melhor.">
+  <div class="hd"><h1 class="title" data-split="Onde a pergunta é|“o que é parecido?”"></h1></div>
+  <div class="bd g3" style="top:400px"><div class="it sm card a" style="--i:2"><span class="well sm"><svg class="ic" aria-hidden="true"><use href="#i-chat"/></svg></span><div><h2>IA generativa (RAG)</h2><p>Contexto para modelos de linguagem</p></div></div><div class="it sm card a" style="--i:3"><span class="well sm"><svg class="ic" aria-hidden="true"><use href="#i-search"/></svg></span><div><h2>Busca semântica</h2><p>Pelo sentido, não pela palavra</p></div></div><div class="it sm card a" style="--i:4"><span class="well sm"><svg class="ic" aria-hidden="true"><use href="#i-star"/></svg></span><div><h2>Recomendação</h2><p>Itens parecidos com o que você viu</p></div></div><div class="it sm card a" style="--i:5"><span class="well sm"><svg class="ic" aria-hidden="true"><use href="#i-image"/></svg></span><div><h2>Imagem e vídeo</h2><p>Mídias visualmente semelhantes</p></div></div><div class="it sm card a" style="--i:6"><span class="well sm"><svg class="ic" aria-hidden="true"><use href="#i-flask"/></svg></span><div><h2>Química e biologia</h2><p>Estruturas parecidas por semelhança</p></div></div><div class="it sm card a" style="--i:7"><span class="well sm hot"><svg class="ic" aria-hidden="true"><use href="#i-bulb"/></svg></span><div><h2>Quando escolher</h2><p>Dados não estruturados e “parecido com”</p></div></div></div>
+</section>
+
+<section class="slide lt busca" id="s8" data-sec="Demonstração" data-who="Ruan" data-title="O significado se monta"
+ data-notes="Leia a consulta. Avance uma vez: os cubos (vetores) voam, se agrupam em verde e, no fim, ganham as cores reais da foto, o vizinho mais próximo da consulta. Ilustração do conceito; a foto é CC0 (Stefan van der Walt, scikit-image). Passe para o Vitor.">
+  <div class="hd" style="width:720px"><p class="kick a">Demonstração</p><h1 class="title" data-split="O significado|se monta"></h1></div>
+  <div class="qc card a fl" style="--i:2">
+    <p class="ql">Consulta</p><p class="qv">“felino doméstico”</p>
+    <div class="st" data-step="1"><p class="ql">Vizinho mais próximo</p><p class="qv res">gato.jpg</p></div>
+  </div>
+  <p class="lead a" style="--i:3;position:absolute;left:120px;top:800px;width:700px">Os cubos são vetores; ao se agrupar, formam o item mais próximo</p>
+  <div class="panel ink-card a fr" style="--i:1"><canvas class="vox" data-vox="gato" data-trig="1" aria-label="Cubos 3D se agrupam e formam a foto de um gato"></canvas><span class="trg" data-step="1"></span><p class="hint">Avance para buscar →</p></div>
+</section>
+
+<section class="slide dk div" id="s9" data-sec="Parte 03" data-who="Vitor" data-title="Vantagens e desvantagens"
+ data-cable="M-140 260 C 500 200, 800 640, 1100 760 S 1700 980, 2080 1100"
+ data-notes="Vitor assume: “Agora a parte 3: vantagens e desvantagens.” O que se ganha e o que se perde ao buscar por semelhança.">
+  <canvas class="vox a fd" data-vox="d3" style="left:1190px;top:170px;width:640px;height:640px" aria-hidden="true"></canvas>
+  <p class="part a"><span class="bar"><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span>Parte 03 de 04</p>
+  <h1 data-split="Vantagens e|desvantagens"></h1>
+  <p class="sub a" style="--i:3">O que se ganha e o que se perde ao buscar por semelhança</p>
+  <p class="who a" style="--i:5"><b>V</b>Vitor Rafael Marcelino <small>apresenta</small></p>
+</section>
+
+<section class="slide lt" id="s10" data-sec="Prós e contras" data-who="Vitor" data-title="Ganha significado, perde exatidão"
+ data-notes="Vitor: vantagens à esquerda, desvantagens à direita. O limite honesto: os índices aproximados trocam um pouco de precisão (recall) por velocidade, a qualidade depende do modelo de embedding, vetores são grandes e cada comparação custa O(D), e consultas que misturam filtros e vetores ainda são um problema aberto (Pan, Wang e Li, 2024).">
+  <div class="hd"><h1 class="title" data-split="Ganha significado,|perde exatidão"></h1></div>
+  <div class="bd g2" style="top:390px">
+    <div class="pc2 card a fl" style="--i:2"><div class="ph"><span class="well ok"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg></span><h2>Vantagens</h2></div><ul class="pl"><li><span class="chk sm"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12.5l4 4L18 8"/></svg></span><div><h3>Busca por significado</h3><p>Mesmo sem palavras em comum</p></div></li><li><span class="chk sm"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12.5l4 4L18 8"/></svg></span><div><h3>Dados não estruturados</h3><p>Texto, imagem e áudio como vetores</p></div></li><li><span class="chk sm"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12.5l4 4L18 8"/></svg></span><div><h3>Escala com índices ANN</h3><p>Não compara a consulta com tudo</p></div></li><li><span class="chk sm"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12.5l4 4L18 8"/></svg></span><div><h3>Base para IA generativa</h3><p>Dá contexto a modelos (RAG)</p></div></li></ul></div>
+    <div class="pc2 card a fr" style="--i:4"><div class="ph"><span class="well no"><svg class="ic" aria-hidden="true"><use href="#i-alert"/></svg></span><h2>Desvantagens</h2></div><ul class="pl"><li><span class="chk sm no"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg></span><div><h3>Resultado aproximado</h3><p>Troca precisão por velocidade</p></div></li><li><span class="chk sm no"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg></span><div><h3>Depende do embedding</h3><p>Modelo ruim, busca ruim</p></div></li><li><span class="chk sm no"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg></span><div><h3>Memória e cálculo</h3><p>Vetores grandes, comparação O(D)</p></div></li><li><span class="chk sm no"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg></span><div><h3>Consultas híbridas</h3><p>Filtro mais vetor ainda é difícil</p></div></li></ul></div>
+  </div>
+</section>
+
+<section class="slide lt" id="s11" data-sec="Comparação" data-who="Vitor" data-title="Igualdade exata ou proximidade"
+ data-notes="Compare linha a linha. O relacional responde “está ou não está”; o vetorial devolve uma lista ordenada por distância. Os dois convivem: muitos sistemas guardam os vetores ao lado dos dados relacionais, como o Guilherme vai mostrar com o pgvector.">
+  <div class="hd"><h1 class="title" data-split="Igualdade exata|ou proximidade"></h1></div>
+  <div class="bd tbl" style="top:390px">
+    <div class="tr th a" style="--i:1"><span></span><span><span class="dot s"></span>Relacional</span><span><span class="dot p"></span>Vetorial</span></div>
+    <div class="tr card a" style="--i:2"><span class="k">Consulta</span><span class="v">WHERE id = 42</span><span class="v">Vizinhos mais próximos</span></div><div class="tr card a" style="--i:3"><span class="k">Estrutura</span><span class="v">Linhas e colunas tipadas</span><span class="v">Vetores de alta dimensão</span></div><div class="tr card a" style="--i:4"><span class="k">Pergunta típica</span><span class="v">Qual cliente tem este CPF?</span><span class="v">O que é parecido com isto?</span></div><div class="tr card a" style="--i:5"><span class="k">Resultado</span><span class="v">Exato: está ou não está</span><span class="v">Ranqueado por distância</span></div>
+  </div>
+</section>
+
+<section class="slide lt busca" id="s12" data-sec="Demonstração" data-who="Vitor" data-title="Nenhuma palavra em comum"
+ data-notes="A vantagem principal na prática: a consulta não tem a palavra café. Avance: a busca encontra a xícara pela proximidade dos vetores. Foto CC0 (Rachel Michetti, scikit-image). Passe para o Guilherme.">
+  <div class="hd" style="width:720px"><p class="kick a">Busca semântica</p><h1 class="title" data-split="Nenhuma palavra|em comum"></h1></div>
+  <div class="qc card a fl" style="--i:2">
+    <p class="ql">Consulta</p><p class="qv">“bebida quente pela manhã”</p>
+    <div class="st" data-step="1"><p class="ql">Vizinho mais próximo</p><p class="qv res">cafe.jpg</p></div>
+  </div>
+  <p class="lead a" style="--i:3;position:absolute;left:120px;top:800px;width:700px">A consulta não diz “café”; a proximidade dos vetores basta</p>
+  <div class="panel ink-card a fr" style="--i:1"><canvas class="vox" data-vox="cafe" data-trig="1" aria-label="Cubos 3D se agrupam e formam a foto de uma xícara de café"></canvas><span class="trg" data-step="1"></span><p class="hint">Avance para buscar →</p></div>
+</section>
+
+<section class="slide dk div" id="s13" data-sec="Parte 04" data-who="Guilherme" data-title="Representação visual"
+ data-cable="M2080 300 C 1500 260, 1200 640, 900 760 S 300 1060, -140 1000"
+ data-notes="Guilherme assume: “Agora a parte 4: representação visual.” Como o modelo organiza, indexa e consulta os vetores.">
+  <canvas class="vox a fd" data-vox="d4" style="left:1190px;top:170px;width:640px;height:640px" aria-hidden="true"></canvas>
+  <p class="part a"><span class="bar"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span>Parte 04 de 04</p>
+  <h1 data-split="Representação|visual"></h1>
+  <p class="sub a" style="--i:3">Como o modelo organiza, indexa e consulta os vetores</p>
+  <p class="who a" style="--i:5"><b>G</b>Guilherme Becker <small>apresenta</small></p>
+</section>
+
+<section class="slide lt" id="s15" data-sec="Representação" data-who="Guilherme" data-title="A busca desce camada por camada"
+ data-notes="Guilherme: a primeira representação é o índice HNSW (Malkov e Yashunin, IEEE TPAMI, 2020). São grafos em camadas aninhadas; as de cima têm poucos nós e ligações longas, a camada 0 tem todos os vetores. Avance: (1) a busca entra no topo e salta para perto da consulta; (2) desce e refina; (3) na camada 0 encontra os vizinhos. Os autores comparam com a skip list. É aproximado: visita poucos nós em vez de todos.">
+  <div class="hd"><h1 class="title" data-split="A busca desce|camada por camada"></h1></div>
+  <svg class="hnsw a fl" style="--i:2" viewBox="0 0 940 600" role="img" aria-label="Índice HNSW com três camadas: a busca entra no topo, salta para perto da consulta e desce até a camada 0"><polygon class="plane" points="200,30 900,30 760,170 60,170"/><text class="lbl" x="6" y="140">C2</text><polygon class="plane" points="200,225 900,225 760,365 60,365"/><text class="lbl" x="6" y="335">C1</text><polygon class="plane" points="200,420 900,420 760,560 60,560"/><text class="lbl" x="6" y="530">C0</text><line class="vert" x1="249" y1="315" x2="249" y2="510"/><line class="vert" x1="673" y1="101" x2="673" y2="491"/><line class="vert" x1="580" y1="249" x2="580" y2="444"/><line class="vert" x1="768" y1="125" x2="768" y2="515"/><line class="vert" x1="519" y1="254" x2="519" y2="449"/><line class="vert" x1="198" y1="146" x2="198" y2="536"/><line class="vert" x1="383" y1="293" x2="383" y2="488"/><line class="edge" x1="673" y1="101" x2="768" y2="125"/><line class="edge" x1="673" y1="101" x2="198" y2="146"/><line class="edge" x1="768" y1="125" x2="198" y2="146"/><circle class="node" cx="673" cy="101" r="8"/><circle class="node" cx="768" cy="125" r="8"/><circle class="node" cx="198" cy="146" r="8"/><line class="edge" x1="580" y1="249" x2="519" y2="254"/><line class="edge" x1="519" y1="254" x2="383" y2="293"/><line class="edge" x1="198" y1="341" x2="383" y2="293"/><line class="edge" x1="580" y1="249" x2="383" y2="293"/><line class="edge" x1="249" y1="315" x2="198" y2="341"/><line class="edge" x1="673" y1="296" x2="768" y2="320"/><line class="edge" x1="673" y1="296" x2="580" y2="249"/><line class="edge" x1="768" y1="320" x2="383" y2="293"/><line class="edge" x1="249" y1="315" x2="383" y2="293"/><circle class="node" cx="249" cy="315" r="8"/><circle class="node" cx="673" cy="296" r="8"/><circle class="node" cx="580" cy="249" r="8"/><circle class="node" cx="768" cy="320" r="8"/><circle class="node" cx="519" cy="254" r="8"/><circle class="node" cx="198" cy="341" r="8"/><circle class="node" cx="383" cy="293" r="8"/><line class="edge" x1="580" y1="444" x2="519" y2="449"/><line class="edge" x1="673" y1="491" x2="694" y2="462"/><line class="edge" x1="511" y1="462" x2="580" y2="444"/><line class="edge" x1="511" y1="462" x2="519" y2="449"/><line class="edge" x1="673" y1="491" x2="704" y2="502"/><line class="edge" x1="673" y1="491" x2="779" y2="476"/><line class="edge" x1="249" y1="510" x2="270" y2="521"/><line class="edge" x1="249" y1="510" x2="181" y2="476"/><line class="edge" x1="360" y1="441" x2="519" y2="449"/><line class="edge" x1="249" y1="510" x2="229" y2="524"/><line class="edge" x1="567" y1="488" x2="673" y2="491"/><line class="edge" x1="249" y1="510" x2="383" y2="488"/><line class="edge" x1="270" y1="521" x2="229" y2="524"/><line class="edge" x1="694" y1="462" x2="779" y2="476"/><line class="edge" x1="673" y1="491" x2="768" y2="515"/><line class="edge" x1="229" y1="524" x2="198" y2="536"/><line class="edge" x1="360" y1="441" x2="205" y2="472"/><line class="edge" x1="768" y1="515" x2="704" y2="502"/><line class="edge" x1="181" y1="476" x2="205" y2="472"/><line class="edge" x1="567" y1="488" x2="445" y2="496"/><line class="edge" x1="270" y1="521" x2="198" y2="536"/><line class="edge" x1="445" y1="496" x2="383" y2="488"/><circle class="node" cx="249" cy="510" r="8"/><circle class="node" cx="567" cy="488" r="8"/><circle class="node" cx="270" cy="521" r="8"/><circle class="node" cx="673" cy="491" r="8"/><circle class="node" cx="511" cy="462" r="8"/><circle class="node" cx="181" cy="476" r="8"/><circle class="node" cx="580" cy="444" r="8"/><circle class="node" cx="694" cy="462" r="8"/><circle class="node" cx="360" cy="441" r="8"/><circle class="node" cx="768" cy="515" r="8"/><circle class="node" cx="704" cy="502" r="8"/><circle class="node" cx="205" cy="472" r="8"/><circle class="node" cx="519" cy="449" r="8"/><circle class="node" cx="779" cy="476" r="8"/><circle class="node" cx="229" cy="524" r="8"/><circle class="node" cx="198" cy="536" r="8"/><circle class="node" cx="445" cy="496" r="8"/><circle class="node" cx="383" cy="488" r="8"/><circle class="qring" cx="715" cy="507" r="15"/><circle class="qdot" cx="715" cy="507" r="5"/><text class="lbl ink" x="665" y="553">consulta</text><g class="st" data-step="1"><line class="path" x1="198" y1="146" x2="768" y2="125"/><circle class="hot" cx="198" cy="146" r="12"/><circle class="hot" cx="768" cy="125" r="12"/><text class="lbl ink" x="128" y="124">entrada</text></g><g class="st" data-step="2"><line class="path" x1="768" y1="137" x2="768" y2="308"/><line class="path" x1="768" y1="320" x2="673" y2="296"/><line class="path" x1="673" y1="296" x2="768" y2="320"/><circle class="hot" cx="768" cy="320" r="12"/><circle class="hot" cx="673" cy="296" r="12"/><circle class="hot" cx="768" cy="320" r="12"/></g><g class="st" data-step="3"><line class="path" x1="768" y1="332" x2="768" y2="503"/><line class="path" x1="768" y1="515" x2="673" y2="491"/><line class="path" x1="673" y1="491" x2="704" y2="502"/><circle class="hot" cx="768" cy="515" r="12"/><circle class="hot" cx="673" cy="491" r="12"/><circle class="hot" cx="704" cy="502" r="12"/></g></svg>
+  <ol class="steps sp a" style="--i:4">
+    <li data-step="1"><b>1</b>Entra no topo: poucos nós, saltos longos</li>
+    <li data-step="2"><b>2</b>Desce e refina a cada camada</li>
+    <li data-step="3"><b>3</b>Na camada 0, acha os vizinhos</li>
+  </ol>
+  <p class="cap2 a" style="--i:6">HNSW: grafo hierárquico de proximidade (Malkov e Yashunin, 2020)</p>
+</section>
+
+<section class="slide lt" id="s16" data-sec="Representação" data-who="Guilherme" data-title="O vetor mora ao lado dos dados"
+ data-notes="Segunda representação: o registro e a consulta, com a extensão pgvector do PostgreSQL. Avance três vezes: (1) o embedding é só mais uma coluna, do tipo vector; (2) os metadados ficam ao lado e servem de filtro; (3) o operador &lt;=&gt; calcula a distância de cosseno, e ORDER BY com LIMIT devolve os 5 vizinhos mais próximos. As 768 dimensões são um exemplo; dependem do modelo de embedding.">
+  <div class="hd"><h1 class="title" data-split="O vetor mora|ao lado dos dados"></h1></div>
+  <div class="bd split" style="top:380px;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr)">
+    <div class="code sm a fl" style="--i:1">
+      <div class="bar"><span class="fi"><svg class="ic" aria-hidden="true"><use href="#i-db"/></svg></span>itens.sql<span class="sig"><span class="dot"></span>pgvector</span></div>
+      <span class="hl st" data-step="1" style="--l:3"></span>
+      <span class="hl st" data-step="2" style="--l:4"></span>
+      <span class="hl st" data-step="2" style="--l:8"></span>
+      <span class="hl st" data-step="3" style="--l:9;--c:2"></span>
+<pre data-lang="sql">CREATE TABLE itens (
+  id        bigserial PRIMARY KEY,
+  embedding vector(768),
+  meta      jsonb
+);
+
+SELECT id, meta FROM itens
+WHERE meta-&gt;&gt;'tipo' = 'imagem'
+ORDER BY embedding &lt;=&gt; $1
+LIMIT 5;</pre>
+    </div>
+    <div>
+      <ol class="steps a" style="--i:3;margin-top:24px">
+        <li data-step="1"><b>1</b>O embedding é mais uma coluna</li>
+        <li data-step="2"><b>2</b>Metadados filtram a busca</li>
+        <li data-step="3"><b>3</b>&lt;=&gt; ordena pela distância de cosseno</li>
+      </ol>
+      <p class="cap2 a" style="--i:5;position:static;margin-top:40px">Exemplo com pgvector (PostgreSQL) · 768 dimensões depende do modelo</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide dk frase" id="s17" data-sec="Para levar" data-who="Guilherme" data-title="Buscar por significado, não por palavras"
+ data-cable="M2080 220 C 1600 280, 1300 620, 1000 820 S 300 1100, -140 960"
+ data-notes="Pausa. A frase que resume o modelo. Deixe no ar antes de seguir para as referências.">
+  <h1 data-split="Buscar por|significado,|não por palavras"></h1>
+  <p class="lead a" style="--i:4">O banco vetorial devolve o que se parece com a pergunta, mesmo quando nenhuma palavra coincide</p>
+  <canvas class="vox a fd" data-vox="lupa" style="left:1360px;top:200px;width:440px;height:640px" aria-hidden="true"></canvas>
+</section>
+
+<section class="slide lt" id="s18" data-sec="Referências" data-who="Guilherme" data-title="Para se aprofundar"
+ data-notes="Referências em ABNT. Livro-base: Manning, Raghavan e Schütze (2008); o capítulo 6 trata do modelo de espaço vetorial. As demais referências (artigos e documentação técnica) serão acrescentadas.">
+  <div class="hd"><h1 class="title" data-split="Para se aprofundar"></h1></div>
+  <ol class="bd refs" style="top:300px">
+    <li class="card a fr" style="--i:1"><span class="well sm"><svg class="ic" aria-hidden="true"><use href="#i-book"/></svg></span><span><small>Livro</small><br>MANNING, C. D.; RAGHAVAN, P.; SCHÜTZE, H. <b>Introduction to Information Retrieval</b>. Cambridge: Cambridge University Press, 2008. Cap. 6</span></li>
+    <li class="card pend a fr" style="--i:2"><span class="well sm"><svg class="ic" aria-hidden="true"><use href="#i-link"/></svg></span><span><small>A definir</small><br>[Artigos e documentação técnica]</span></li>
+  </ol>
+</section>
+
+<section class="slide lt fim" id="s19" data-sec="Encerramento" data-who="Todos" data-title="Perguntas?"
+ data-notes="Todos voltam à frente. Retome a capa: dados viram vetores, se agrupam por significado e são encontrados por proximidade. Abra para perguntas.">
+  <p class="k2 a">Obrigado!</p>
+  <h1 class="giant" data-split="Perguntas?"></h1>
+  <p class="lead a" style="--i:2">Banco vetorial: guardar significado e encontrar o que se parece</p>
+  <p class="by a" style="--i:4"><span class="card">Pedro Henrique Urio dos Santos</span><span class="card">Ruan Carlos da Silva</span><span class="card">Vitor Rafael Marcelino</span><span class="card">Guilherme Becker</span></p>
+  <div class="sum"><div class="it card a fr" style="--i:3;align-items:center"><span class="chk stamp" style="--t:1100ms"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12.5l4 4L18 8"/></svg></span><div><h2>Vetores guardam significado</h2><p>Parecidos ficam próximos</p></div></div><div class="it card a fr" style="--i:5;align-items:center"><span class="chk stamp" style="--t:1400ms"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12.5l4 4L18 8"/></svg></span><div><h2>Índices dão escala</h2><p>HNSW visita poucos nós</p></div></div><div class="it card a fr" style="--i:7;align-items:center"><span class="chk stamp" style="--t:1700ms"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12.5l4 4L18 8"/></svg></span><div><h2>O limite é a aproximação</h2><p>Velocidade em troca de precisão</p></div></div></div>
+</section>
+
+</div><!-- /wall -->
+
+<!-- ═════════════ Interface do apresentador ═════════════ -->
+<div class="ui">
+  <button class="edge l" id="eprev" aria-label="Slide anterior"><span><svg class="ic" aria-hidden="true" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></span></button>
+  <button class="edge r" id="enext" aria-label="Próximo slide"><span><svg class="ic" aria-hidden="true" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></button>
+  <div id="bar"><i></i></div>
+  <nav id="dock" aria-label="Controles da apresentação">
+    <button data-cmd="prev" data-tip="Anterior ←" aria-label="Anterior"><svg class="ic" aria-hidden="true" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <div class="pos" id="pos">1 / 1</div>
+    <button data-cmd="next" data-tip="Próximo →" aria-label="Próximo"><svg class="ic" aria-hidden="true" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+    <span class="sep"></span>
+    <button data-cmd="overview" data-tip="Parede de slides O" aria-label="Visão geral"><svg class="ic" aria-hidden="true" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="7" height="6" rx="1.5"/><rect x="13.5" y="4.5" width="7" height="6" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="6" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="6" rx="1.5"/></svg></button>
+    <button data-cmd="notes" data-tip="Notas N" aria-label="Notas do apresentador"><svg class="ic" aria-hidden="true" viewBox="0 0 24 24"><path d="M6 3.5h9l4 4v13H6z"/><path d="M9 12h7M9 16h5"/></svg></button>
+    <button data-cmd="laser" data-tip="Laser L" aria-label="Ponteiro laser"><svg class="ic" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg></button>
+    <button data-cmd="palette" data-tip="Comandos K" aria-label="Paleta de comandos"><svg class="ic" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 8l4 4-4 4M12 17h7"/></svg></button>
+    <span class="sep"></span>
+    <button data-cmd="frame" data-tip="Moldura M" aria-label="Alternar moldura"><svg class="ic" aria-hidden="true" viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="13" rx="3"/><rect x="7" y="9" width="10" height="6" rx="1"/></svg></button>
+    <button data-cmd="pdf" data-tip="Exportar PDF P" aria-label="Exportar PDF"><svg class="ic" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 4v11M7.5 10.5L12 15l4.5-4.5M5 19.5h14"/></svg></button>
+    <button data-cmd="fullscreen" data-tip="Tela cheia F" aria-label="Tela cheia"><svg class="ic" aria-hidden="true" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+  </nav>
+  <aside id="notes" aria-label="Notas do apresentador">
+    <div><p class="nh" id="nh"></p><p id="np"></p><p class="nx" id="nn"></p></div>
+    <div class="tm"><small>Tempo</small><span id="tm">00:00</span></div>
+  </aside>
+  <div id="pal" role="dialog" aria-label="Comandos"><div class="box">
+    <input id="pq" placeholder="Digite um comando ou o nome de um slide…" autocomplete="off" spellcheck="false">
+    <ul id="pl"></ul>
+    <div class="foot2"><span>↑↓ navegar</span><span>↵ executar</span><span>esc fechar</span></div>
+  </div></div>
+  <div id="help" role="dialog" aria-label="Atalhos"><div class="box">
+    <h2>Atalhos</h2>
+    <dl>
+      <div>Próximo / revelar <span><kbd>→</kbd><kbd>Espaço</kbd></span></div>
+      <div>Anterior <span><kbd>←</kbd><kbd>⌫</kbd></span></div>
+      <div>Pular passos <span><kbd>⇧</kbd><kbd>→ ←</kbd></span></div>
+      <div>Primeiro / último <span><kbd>Home</kbd><kbd>End</kbd></span></div>
+      <div>Ir para o slide <span><kbd>12</kbd><kbd>↵</kbd></span></div>
+      <div>Comandos <span><kbd>K</kbd><kbd>Ctrl K</kbd></span></div>
+      <div>Parede de slides <span><kbd>O</kbd></span></div>
+      <div>Moldura / tela inteira <span><kbd>M</kbd></span></div>
+      <div>Notas e cronômetro <span><kbd>N</kbd></span></div>
+      <div>Zerar cronômetro <span><kbd>T</kbd></span></div>
+      <div>Ponteiro laser <span><kbd>L</kbd></span></div>
+      <div>Tela preta <span><kbd>B</kbd></span></div>
+      <div>Tela cheia <span><kbd>F</kbd></span></div>
+      <div>Exportar PDF <span><kbd>P</kbd></span></div>
+    </dl>
+  </div></div>
+  <div id="toast" role="status"></div>
+  <div id="blank"></div>
+  <div id="laser"></div>
+  <div id="live" class="sr" aria-live="polite"></div>
+</div>
+
+<script>
+/* ═════════════ Motor do deck ═════════════ */
+(() => {
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  const root = document.documentElement, body = document.body, wall = $('#wall');
+  root.classList.add('js');
+  const cfg = body.dataset;
+  const slides = $$('.slide'), N = slides.length;
+  const reduce = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const pad2 = n => String(n).padStart(2, '0');
+  const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const tok = n => getComputedStyle(root).getPropertyValue(n).trim();
+  const STORE = 'deck-bleed:' + location.pathname;
+
+  /* ── destaque de sintaxe (leve) ── */
+  const KW = new Set('import export from const let var return new if else for while of in async await function class interface type extends implements public private protected readonly static throw try catch def self None True False'.split(' '));
+  const TOK = /(\/\/.*|#.*|\/\*.*?\*\/)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`)|(\b\d+(?:\.\d+)?\b)|(\b[A-Za-z_$][\w$]*\b)/g;
+  function highlight(src, lang) {
+    let out = '', last = 0, m;
+    TOK.lastIndex = 0;
+    while ((m = TOK.exec(src))) {
+      out += esc(src.slice(last, m.index)); last = TOK.lastIndex;
+      const t = m[0];
+      if (m[1] && (t[0] !== '#' || /^(py|sh|bash|yaml|yml|rb)$/.test(lang))) out += `<span class="c">${esc(t)}</span>`;
+      else if (m[1]) { out += esc(t[0]); TOK.lastIndex = m.index + 1; last = TOK.lastIndex; }
+      else if (m[2]) out += `<span class="s">${esc(t)}</span>`;
+      else if (m[3]) out += `<span class="n">${t}</span>`;
+      else if (KW.has(t)) out += `<span class="k">${t}</span>`;
+      else if (/^[A-Z]/.test(t)) out += `<span class="t">${t}</span>`;
+      else out += t;
+    }
+    return out + esc(src.slice(last));
+  }
+  $$('pre[data-lang]').forEach(p => { p.innerHTML = highlight(p.textContent, p.dataset.lang); });
+
+  /* ── montagem: títulos em linhas, cabeçalho, rodapé, fita, orbes, moldura ── */
+  const LOGO = $('#logo') ? $('#logo').innerHTML : '';
+  $$('[data-split]').forEach(h => {
+    h.innerHTML = h.dataset.split.split('|').map((l, j) => `<span class="ln"><span class="lw" style="--j:${j}">${esc(l)}</span></span>`).join('');
+    h.setAttribute('aria-label', h.dataset.split.replace(/\|/g, ' '));
+  });
+  const CAB = [tok('--cab-1'), tok('--cab-2'), tok('--cab-3')];
+  const ORBS = ['1560 420 760;380 960 600 b', '320 360 620 b;1620 880 720', '1720 300 660 b;900 940 640', '1240 560 780;180 220 460 b'];
+  slides.forEach((s, k) => {
+    s.insertAdjacentHTML('afterbegin', `<header class="hdr"><span class="logo">${LOGO}${esc(cfg.marca || '')}</span><span class="yr">${esc(cfg.ano || '')}</span></header>`);
+    const third = s.dataset.who || cfg.rodape2 || '';
+    s.insertAdjacentHTML('beforeend', `<footer class="ftr"><span>${esc(s.dataset.sec || '')}</span><span>${esc(cfg.rodape || '')}</span><span>${esc(third)}</span><span class="pg">${pad2(k + 1)}</span></footer>`);
+    if (s.dataset.cable) {
+      const id = 'cg' + k, dk = s.classList.contains('dk');
+      s.insertAdjacentHTML('afterbegin', `<svg class="cable" viewBox="0 0 1920 1080" aria-hidden="true">
+        <defs><linearGradient id="${id}" gradientUnits="userSpaceOnUse" x1="0" y1="1080" x2="1920" y2="0"><stop offset="0" stop-color="${CAB[0]}"/><stop offset=".5" stop-color="${CAB[1]}"/><stop offset="1" stop-color="${CAB[2]}"/></linearGradient></defs>
+        <path class="glow draw" pathLength="1" d="${s.dataset.cable}" fill="none" stroke="url(#${id})" stroke-width="230" stroke-linecap="round" opacity="${dk ? .55 : .9}"/>
+        <path class="core draw" pathLength="1" d="${s.dataset.cable}" fill="none" stroke="url(#${id})" stroke-width="54" stroke-linecap="round" opacity="${dk ? .7 : .55}"/>
+      </svg>`);
+    }
+    /* data-orbs="x y tamanho[ b]; ..." · em "auto", slides claros sem data-orbs ganham um par padrão */
+    if (cfg.orbes !== 'off') {
+      if (!s.dataset.orbs && s.classList.contains('lt') && cfg.orbes === 'auto') s.dataset.orbs = ORBS[k % ORBS.length];
+      if (s.dataset.orbs) s.insertAdjacentHTML('afterbegin', s.dataset.orbs.split(';').map(o => {
+        const [x, y, r, b] = o.trim().split(/\s+/);
+        return `<span class="orb${b ? ' b' : ''}" aria-hidden="true" style="left:${x - r / 2}px;top:${y - r / 2}px;width:${r}px;height:${r}px"></span>`;
+      }).join(''));
+    }
+    /* trilha de passos */
+    $$('.track', s).forEach(tr => {
+      const total = +tr.dataset.total || 5, now = (tr.dataset.now || '1').split(' ').map(Number), last = now[now.length - 1];
+      const x = n => 8 + (n - 1) * 71;
+      tr.innerHTML = `<span class="rail" style="width:${x(total) + 16}px"><b style="width:${x(last) - 8}px"></b>${Array.from({ length: total }, (_, j) => j + 1).map(n => `<i style="left:${x(n) + 9}px" class="${now.includes(n) ? 'now' : n < now[0] ? 'done' : ''}"></i>`).join('')}</span><span>${esc(tr.dataset.label || '')}</span>`;
+    });
+    $$('.a', s).forEach((el, j) => { if (!el.style.getPropertyValue('--i')) el.style.setProperty('--i', j); });
+    const f = document.createElement('div'); f.className = 'frame'; f.dataset.n = pad2(k + 1);
+    s.parentNode.insertBefore(f, s); f.appendChild(s);
+    s.setAttribute('aria-label', `Slide ${k + 1} de ${N}: ${s.dataset.title}`);
+    s.setAttribute('role', 'group'); s.setAttribute('aria-roledescription', 'slide');
+  });
+  const frames = $$('.frame');
+
+  /* ── parede: "fluxo" (serpentina com conectores) ou "cabo" (grade ligada por um cabo) ── */
+  const COLS = 4, FLUXO = cfg.parede !== 'cabo';
+  const GX = FLUXO ? 420 : 240, GY = FLUXO ? 380 : 240, TOP = FLUXO ? 120 : 0;
+  const W = COLS * 1920 + (COLS - 1) * GX, ROWS = Math.ceil(N / COLS), H = TOP + ROWS * 1080 + (ROWS - 1) * GY;
+  const pos = frames.map((f, i) => {
+    const r = Math.floor(i / COLS), c = FLUXO && r % 2 ? COLS - 1 - (i % COLS) : i % COLS;
+    const p = { x: c * (1920 + GX), y: TOP + r * (1080 + GY) }; f.style.left = p.x + 'px'; f.style.top = p.y + 'px'; return p;
+  });
+  wall.style.width = W + 'px'; wall.style.height = H + 'px';
+  const links = [];
+  const svg = $('#cables'); svg.setAttribute('width', W); svg.setAttribute('height', H);
+  if (FLUXO) {
+    let out = `<defs><linearGradient id="flowGrad" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="${CAB[0]}"/><stop offset=".5" stop-color="${CAB[1]}"/><stop offset="1" stop-color="${CAB[2]}"/></linearGradient></defs>`;
+    const ends = [];
+    for (let i = 0; i < N - 1; i++) {
+      const a = pos[i], b = pos[i + 1];
+      let d, s, e;
+      if (b.y === a.y) {
+        const fwd = b.x > a.x, ax = fwd ? a.x + 1920 : a.x, bx = fwd ? b.x : b.x + 1920, ay = a.y + 540, by = b.y + 540, k = (bx - ax) / 2;
+        s = [ax, ay]; e = [bx, by]; d = `M${ax} ${ay} C${ax + k} ${ay - 160}, ${bx - k} ${by + 160}, ${bx} ${by}`;
+      } else {
+        const ax = a.x + 1500, ay = a.y + 1080, bx = b.x + 1500, by = b.y;
+        s = [ax, ay]; e = [bx, by]; d = `M${ax} ${ay} C${ax + 260} ${ay + GY * .6}, ${bx - 260} ${by - GY * .6}, ${bx} ${by}`;
+      }
+      out += `<path class="link" d="${d}"/><path class="lit" id="lk${i}" pathLength="1" d="${d}"/>`;
+      ends.push({ s, e });
+    }
+    ends.forEach((p, i) => { out += `<circle class="node" id="nd${i}" cx="${p.s[0]}" cy="${p.s[1]}" r="18"/><circle class="node tip" id="tp${i}" cx="${p.e[0]}" cy="${p.e[1]}" r="18"/>`; });
+    out += `<circle id="flowRip" r="40"/><g id="flowCur"><path class="c-body" d="M6 4l34 19-15 4 9 17-7 4-9-17-11 10z"/></g>`;
+    svg.innerHTML = out;
+    for (let i = 0; i < N - 1; i++) links.push({ lit: $('#lk' + i), node: $('#nd' + i), tip: $('#tp' + i) });
+  } else {
+    let d = '';
+    const P = tok('--p'), INK = tok('--ink');
+    for (let i = 0; i < N - 1; i++) {
+      const a = pos[i], b = pos[i + 1], ay = a.y + 540, by = b.y + 540, ax = a.x + 1920, bx = b.x;
+      if (b.y === a.y) d += `M${ax} ${ay} H${bx} `;
+      else { const my = a.y + 1080 + GY / 2, r = 90; d += `M${ax} ${ay} H${ax + GX / 2 - r} Q${ax + GX / 2} ${ay} ${ax + GX / 2} ${ay + r} V${my - r} Q${ax + GX / 2} ${my} ${ax + GX / 2 - r} ${my} H${bx - GX / 2 + r} Q${bx - GX / 2} ${my} ${bx - GX / 2} ${my + r} V${by - r} Q${bx - GX / 2} ${by} ${bx - GX / 2 + r} ${by} H${bx} `; }
+    }
+    svg.innerHTML = `<path d="${d}" fill="none" stroke="${P}" stroke-width="60" stroke-linecap="round" opacity=".25" style="filter:blur(18px)"/><path d="${d}" fill="none" stroke="${P}" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>` +
+      pos.map((p, i) => (i ? `<rect x="${p.x - 34}" y="${p.y + 510}" width="34" height="60" rx="8" fill="${INK}"/>` : '') + (i < N - 1 ? `<rect x="${p.x + 1920}" y="${p.y + 516}" width="44" height="48" rx="8" fill="${P}"/><rect x="${p.x + 1964}" y="${p.y + 526}" width="18" height="8" rx="2" fill="${INK}"/><rect x="${p.x + 1964}" y="${p.y + 546}" width="18" height="8" rx="2" fill="${INK}"/>` : '')).join('');
+  }
+  const markLinks = upto => links.forEach((l, i) => { const on = i < upto; l.lit.classList.toggle('done', on); l.node.classList.toggle('done', on); l.tip.classList.toggle('done', on); });
+
+  /* cursor que percorre o conector até o próximo frame (só na parede "fluxo") */
+  const fcur = $('#flowCur'), frip = $('#flowRip');
+  let walk = 0;
+  function travel(from, to, dur) {
+    if (!FLUXO) return;
+    cancelAnimationFrame(walk);
+    if (reduce() || dur <= 0 || Math.abs(to - from) !== 1) { markLinks(to); fcur.classList.remove('on'); return; }
+    const i = Math.min(from, to), lk = links[i].lit, len = lk.getTotalLength(), fwd = to > from, t0 = performance.now();
+    markLinks(Math.min(from, to));
+    lk.style.transition = 'none';
+    fcur.classList.add('on');
+    const tick = now => {
+      const t = Math.min(1, (now - t0) / (dur * .82));
+      const e = t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+      const u = fwd ? e : 1 - e, p = lk.getPointAtLength(u * len);
+      const z = new DOMMatrix(getComputedStyle(wall).transform).a || 1;
+      fcur.setAttribute('transform', `translate(${p.x} ${p.y}) scale(${Math.min(9, 1.1 / z)}) translate(-6 -4)`);
+      lk.style.strokeDashoffset = 1 - u;
+      if (t < 1) walk = requestAnimationFrame(tick);
+      else {
+        lk.style.strokeDashoffset = ''; lk.style.transition = ''; markLinks(to);
+        frip.setAttribute('cx', p.x); frip.setAttribute('cy', p.y);
+        frip.style.transformOrigin = `${p.x}px ${p.y}px`; frip.style.transformBox = 'view-box';
+        frip.animate([{ opacity: .9, transform: 'scale(.3)' }, { opacity: 0, transform: 'scale(2.4)' }], { duration: 600, easing: 'cubic-bezier(.16,1,.3,1)' });
+        fcur.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 300, delay: 250, fill: 'forwards' }).finished.then(() => { fcur.classList.remove('on'); fcur.getAnimations().forEach(a => a.cancel()); });
+      }
+    };
+    walk = requestAnimationFrame(tick);
+  }
+
+  /* ── câmera ── */
+  let cam = { x: 0, y: 0, z: 1 }, flight = null, ov = false;
+  const bleed = () => root.classList.contains('bleed');
+  const T = c => `translate(${c.x}px,${c.y}px) scale(${c.z})`;
+  const camFor = i => { const z = Math.min(innerWidth / 1920, innerHeight / 1080) * (bleed() ? 1 : .94); return { z, x: innerWidth / 2 - (pos[i].x + 960) * z, y: innerHeight / 2 - (pos[i].y + 540) * z }; };
+  const camAll = () => { const z = Math.min(innerWidth / W, (innerHeight - 90) / H) * .94; return { z, x: (innerWidth - W * z) / 2, y: (innerHeight - 90 - H * z) / 2 + 20 }; };
+  const setCam = c => { cam = c; wall.style.transform = T(c); };
+  function fly(to, { dur = 1050, swoop = true } = {}) {
+    if (flight) { flight.cancel(); flight = null; }
+    const from = cam;
+    if (reduce() || dur === 0) { setCam(to); return 0; }
+    const kf = [{ transform: T(from), easing: 'cubic-bezier(.55,0,.35,1)' }];
+    if (swoop) {
+      const c1 = { x: (innerWidth / 2 - from.x) / from.z, y: (innerHeight / 2 - from.y) / from.z }, c2 = { x: (innerWidth / 2 - to.x) / to.z, y: (innerHeight / 2 - to.y) / to.z };
+      const dist = Math.hypot(c2.x - c1.x, c2.y - c1.y);
+      const zm = Math.min(from.z, to.z) * Math.max(.3, .78 - dist / 9000);
+      const mc = { x: (c1.x + c2.x) / 2, y: (c1.y + c2.y) / 2 };
+      kf.push({ transform: T({ z: zm, x: innerWidth / 2 - mc.x * zm, y: innerHeight / 2 - mc.y * zm }), offset: .5, easing: 'cubic-bezier(.45,0,.25,1)' });
+      dur += Math.min(500, dist / 12);
+    }
+    kf.push({ transform: T(to) });
+    setCam(to);
+    wall.classList.add('flying');
+    flight = wall.animate(kf, { duration: dur });
+    flight.finished.then(() => { wall.classList.remove('flying'); flight = null; }).catch(() => {});
+    return dur;
+  }
+  addEventListener('resize', () => setCam(ov ? camAll() : camFor(cur)));
+
+  /* ── estado: slide atual e passos (data-step) ── */
+  let cur = -1, step = 0;
+  const stepsOf = s => Math.max(0, ...$$('[data-step]', s).map(e => +e.dataset.step));
+  const setStep = n => {
+    step = n;
+    $$('[data-step]', slides[cur]).forEach(e => { e.classList.toggle('on', +e.dataset.step <= n); e.classList.toggle('now', +e.dataset.step === n); });
+    progress();
+  };
+  function progress() {
+    const m = stepsOf(slides[cur]);
+    $('#bar i').style.transform = `scaleX(${N > 1 ? (cur + (m ? step / (m + 1) : 0)) / (N - 1) : 1})`;
+    $('#pos').textContent = `${cur + 1} / ${N}`;
+  }
+  function go(to, o = {}) {
+    to = Math.max(0, Math.min(N - 1, to));
+    if (to === cur && !o.force && !ov) return;
+    const back = cur >= 0 && to < cur && !ov;
+    const inn = slides[to];
+    const wasOv = ov; ov = false; body.classList.remove('ov');
+    const from = cur;
+    const dur = o.instant ? 0 : fly(camFor(to), { swoop: !wasOv }) || 0;
+    if (!wasOv && from >= 0) travel(from, to, dur); else if (FLUXO) markLinks(to);
+    inn.classList.remove('enter');
+    inn.style.setProperty('--b', Math.max(0, dur - 420) + 'ms');
+    void inn.offsetWidth;
+    if (!back) inn.classList.add('enter');
+    cur = to;
+    $$('[data-step]', inn).forEach(e => { e.classList.toggle('on', back); e.classList.remove('now'); });
+    step = back ? stepsOf(inn) : 0;
+    if (o.step != null) setStep(Math.min(o.step, stepsOf(inn))); else progress();
+    history.replaceState(null, '', '#' + (to + 1));
+    $('#live').textContent = `Slide ${to + 1} de ${N}: ${inn.dataset.title}`;
+    frames.forEach((f, i) => f.classList.toggle('cur', i === to));
+    updateNotes();
+    dispatchEvent(new CustomEvent('deck:slide', { detail: { index: to, slide: inn } }));
+  }
+  const next = skip => (!skip && step < stepsOf(slides[cur])) ? setStep(step + 1) : go(cur + 1);
+  const prev = skip => (!skip && step > 0) ? setStep(step - 1) : go(cur - 1);
+
+  /* ── parede de slides (visão geral) ── */
+  function overview(on = !ov) {
+    if (!on) return go(cur, { force: true });
+    ov = true; body.classList.add('ov');
+    fly(camAll(), { swoop: false, dur: 900 });
+  }
+  frames.forEach((f, i) => f.addEventListener('click', () => { if (ov) go(i, { force: true }); }));
+
+  /* ── notas + cronômetro ── */
+  let t0 = Date.now();
+  function updateNotes() {
+    const s = slides[cur], who = s.dataset.who ? `, ${s.dataset.who}` : '';
+    $('#nh').textContent = `Slide ${cur + 1} de ${N}${who}: ${s.dataset.title}`;
+    $('#np').textContent = s.dataset.notes || '';
+    $('#nn').textContent = slides[cur + 1] ? `Próximo: ${slides[cur + 1].dataset.title}` : 'Último slide';
+  }
+  setInterval(() => { const t = Math.floor((Date.now() - t0) / 1000); $('#tm').textContent = pad2(Math.floor(t / 60)) + ':' + pad2(t % 60); }, 500);
+  let tt; const toast = m => { const e = $('#toast'); e.textContent = m; e.classList.add('on'); clearTimeout(tt); tt = setTimeout(() => e.classList.remove('on'), 2800); };
+
+  /* ── comandos ── */
+  const toggleBody = (c, on, off) => toast(body.classList.toggle(c) ? on : off);
+  function exportPDF() {
+    toast('Na janela de impressão: “Salvar como PDF”, margens “Nenhuma” e “Gráficos de plano de fundo” ligado.');
+    root.classList.add('pdf');
+    setTimeout(() => print(), 450);
+  }
+  addEventListener('beforeprint', () => root.classList.add('pdf'));
+  addEventListener('afterprint', () => { if (!new URLSearchParams(location.search).has('pdf')) { root.classList.remove('pdf'); setCam(ov ? camAll() : camFor(cur)); } });
+  const fullscreen = () => document.fullscreenElement ? document.exitFullscreen() : root.requestFullscreen?.();
+  const blank = () => $('#blank').classList.toggle('on');
+  const frameMode = () => { root.classList.toggle('bleed'); try { localStorage.setItem(STORE, bleed() ? '1' : '0'); } catch (e) {} if (!ov) fly(camFor(cur), { swoop: false, dur: 500 }); toast(bleed() ? 'Tela inteira' : 'Moldura'); };
+  const CMDS = [
+    { id: 'next', t: 'Próximo', k: '→', run: () => next() },
+    { id: 'prev', t: 'Anterior', k: '←', run: () => prev() },
+    { id: 'first', t: 'Primeiro slide', k: 'Home', run: () => go(0) },
+    { id: 'last', t: 'Último slide', k: 'End', run: () => go(N - 1) },
+    { id: 'overview', t: 'Parede de slides (visão geral)', k: 'O', run: () => overview() },
+    { id: 'frame', t: 'Alternar moldura / tela inteira', k: 'M', run: frameMode },
+    { id: 'notes', t: 'Notas do apresentador e cronômetro', k: 'N', run: () => toggleBody('shownotes', 'Notas visíveis', 'Notas ocultas') },
+    { id: 'timer', t: 'Zerar cronômetro', k: 'T', run: () => { t0 = Date.now(); toast('Cronômetro zerado'); } },
+    { id: 'laser', t: 'Ponteiro laser', k: 'L', run: () => toggleBody('laser', 'Laser ligado', 'Laser desligado') },
+    { id: 'blank', t: 'Tela preta', k: 'B', run: blank },
+    { id: 'fullscreen', t: 'Tela cheia', k: 'F', run: fullscreen },
+    { id: 'pdf', t: 'Exportar para PDF', k: 'P', run: exportPDF },
+    { id: 'help', t: 'Atalhos de teclado', k: '?', run: () => $('#help').classList.add('open') },
+    { id: 'palette', t: 'Paleta de comandos', k: 'K', run: () => openPalette() },
+  ];
+  const cmd = id => CMDS.find(c => c.id === id).run();
+  $$('[data-cmd]').forEach(b => b.addEventListener('click', () => { cmd(b.dataset.cmd); b.blur(); }));
+  $('#eprev').onclick = () => prev(); $('#enext').onclick = () => next();
+  $$('[data-goto]').forEach(a => a.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); go(+a.dataset.goto - 1); }));
+
+  /* ── paleta ── */
+  let sel = 0, items = [];
+  const pal = $('#pal'), pq = $('#pq'), pl = $('#pl');
+  function renderPalette() {
+    const q = pq.value.trim().toLowerCase();
+    const all = [
+      ...CMDS.map(c => ({ label: c.t, key: c.k, run: c.run, hay: c.t.toLowerCase() })),
+      ...slides.map((s, i) => ({ label: `Ir para ${pad2(i + 1)}: ${s.dataset.title}`, key: '', run: () => go(i), hay: `${i + 1} ${pad2(i + 1)} ir para slide ${s.dataset.title} ${s.dataset.sec} ${s.dataset.who || ''}`.toLowerCase() })),
+    ];
+    items = q ? all.filter(i => q.split(/\s+/).every(w => i.hay.includes(w))) : all;
+    sel = Math.min(sel, Math.max(0, items.length - 1));
+    pl.innerHTML = items.length ? items.map((i, k) => `<li class="${k === sel ? 'sel' : ''}" data-k="${k}"><span>${esc(i.label)}</span>${i.key ? `<kbd>${esc(i.key)}</kbd>` : ''}</li>`).join('') : '<div class="empty">Nenhum comando encontrado.</div>';
+    $('.sel', pl)?.scrollIntoView({ block: 'nearest' });
+  }
+  function openPalette() { pal.classList.add('open'); pq.value = ''; sel = 0; renderPalette(); pq.focus(); }
+  function closePalette() { pal.classList.remove('open'); pq.blur(); }
+  function runSel() { const i = items[sel]; if (!i) return; closePalette(); i.run(); }
+  pq.addEventListener('input', () => { sel = 0; renderPalette(); });
+  pl.addEventListener('click', e => { const li = e.target.closest('li'); if (li) { sel = +li.dataset.k; runSel(); } });
+  pal.addEventListener('mousedown', e => { if (e.target === pal) closePalette(); });
+  $('#help').addEventListener('mousedown', e => { if (e.target.id === 'help') $('#help').classList.remove('open'); });
+
+  /* ── teclado ── */
+  let digits = '', dt;
+  addEventListener('keydown', e => {
+    if (pal.classList.contains('open')) {
+      if (e.key === 'Escape') closePalette();
+      else if (e.key === 'ArrowDown') { e.preventDefault(); sel = Math.min(items.length - 1, sel + 1); renderPalette(); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); sel = Math.max(0, sel - 1); renderPalette(); }
+      else if (e.key === 'Enter') { e.preventDefault(); runSel(); }
+      return;
+    }
+    const k = e.key;
+    if ((e.ctrlKey || e.metaKey) && k.toLowerCase() === 'k') { e.preventDefault(); return openPalette(); }
+    if (e.altKey || e.ctrlKey || e.metaKey) return;
+    if (k === 'Escape') {
+      if ($('#help').classList.contains('open')) return $('#help').classList.remove('open');
+      if ($('#blank').classList.contains('on')) return blank();
+      if (ov) return overview(false);
+      if (body.classList.contains('laser')) return cmd('laser');
+      return;
+    }
+    if (/^\d$/.test(k)) { digits += k; toast('Ir para o slide ' + digits + '  ↵'); clearTimeout(dt); dt = setTimeout(() => { digits = ''; }, 1600); return; }
+    if (k === 'Enter' && digits) { go(+digits - 1); digits = ''; return; }
+    const sk = e.shiftKey;
+    switch (k) {
+      case 'ArrowRight': case 'ArrowDown': case 'PageDown': case ' ': case 'Enter': e.preventDefault(); ov ? go(cur, { force: true }) : next(sk); break;
+      case 'ArrowLeft': case 'ArrowUp': case 'PageUp': case 'Backspace': e.preventDefault(); if (!ov) prev(sk); break;
+      case 'Home': go(0); break;
+      case 'End': go(N - 1); break;
+      case 'o': case 'O': case 'Tab': e.preventDefault(); overview(); break;
+      case 'm': case 'M': frameMode(); break;
+      case 'n': case 'N': cmd('notes'); break;
+      case 't': case 'T': cmd('timer'); break;
+      case 'l': case 'L': cmd('laser'); break;
+      case 'b': case 'B': case '.': blank(); break;
+      case 'f': case 'F': fullscreen(); break;
+      case 'p': case 'P': exportPDF(); break;
+      case 'k': case 'K': case '/': e.preventDefault(); openPalette(); break;
+      case '?': $('#help').classList.add('open'); break;
+    }
+  });
+
+  /* ── ponteiro, ociosidade, toque ── */
+  const laser = $('#laser'); let idleT;
+  addEventListener('mousemove', e => {
+    laser.style.transform = `translate(${e.clientX}px,${e.clientY}px)`;
+    root.classList.remove('idle'); clearTimeout(idleT);
+    idleT = setTimeout(() => { if (!ov && !pal.classList.contains('open')) root.classList.add('idle'); }, 2800);
+  });
+  idleT = setTimeout(() => root.classList.add('idle'), 3200);
+  let tx = null;
+  addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, { passive: true });
+  addEventListener('touchend', e => { if (tx == null || ov) return; const dx = e.changedTouches[0].clientX - tx; if (Math.abs(dx) > 60) dx < 0 ? next() : prev(); tx = null; });
+  addEventListener('hashchange', () => { const n = parseHash(); if (n && n.i !== cur) go(n.i); });
+
+  /* ── vídeos .vid: ampliar/reduzir, Esc fecha, pausa ao sair do slide ── */
+  $$('.vid').forEach(fig => {
+    const v = $('video', fig), btn = $('.vbig', fig), frame = fig.closest('.frame');
+    if (!v || !btn) return;
+    const setBig = on => { fig.classList.toggle('big', on); btn.setAttribute('aria-label', on ? 'Reduzir vídeo' : 'Ampliar vídeo'); };
+    btn.addEventListener('click', e => { e.stopPropagation(); const on = !fig.classList.contains('big'); setBig(on); if (on && v.paused) v.play().catch(() => {}); btn.blur(); });
+    v.addEventListener('dblclick', e => { e.preventDefault(); btn.click(); });
+    v.addEventListener('focus', () => setTimeout(() => v.blur())); // setas e espaço continuam com a apresentação
+    v.addEventListener('play', () => fig.classList.add('playing'));
+    v.addEventListener('pause', () => fig.classList.remove('playing'));
+    addEventListener('keydown', e => { if (e.key === 'Escape' && fig.classList.contains('big')) { e.stopImmediatePropagation(); e.preventDefault(); setBig(false); } }, true);
+    addEventListener('deck:slide', e => { if (e.detail.slide.parentNode !== frame) { v.pause(); setBig(false); } });
+  });
+
+  /* ── início: #6 ou #6.3 (slide 6, passo 3) · ?pdf para o layout de impressão ── */
+  function parseHash() {
+    const m = location.hash.match(/^#(\d+)(?:\.(\d+))?$/);
+    return m ? { i: Math.max(0, Math.min(N - 1, +m[1] - 1)), s: m[2] ? +m[2] : 0 } : null;
+  }
+  try { if (localStorage.getItem(STORE) === '1') root.classList.add('bleed'); } catch (e) {}
+  if (new URLSearchParams(location.search).has('pdf')) { root.classList.add('pdf'); $$('[data-step]').forEach(e => e.classList.add('on')); }
+  const h = parseHash();
+  setCam(camFor(h ? h.i : 0));
+  go(h ? h.i : 0, { instant: true, force: true, step: h ? h.s : 0 });
+  window.__deck = { go, next, prev, overview, setStep, get cur() { return cur; }, get step() { return step; }, stepsOf: i => stepsOf(slides[i]), N };
+})();
+</script>
+<script>window.__VOX={"gato":{"pal":["CCB7B5","C7B1AF","C2ACAA","BFA8A4","C0A798","BCA7A3","C3A088","BCA298","BAA39D","B6A19E","B59F9A","B39D98","C49A79","BD9A85","C19570","BA9A8C","B99581","B29A92","AC9892","B49485","A9948D","BE9067","B89072","B58F76","B19081","B18F79","B08D78","B48A6C","B38665","B98758","AF8970","AF8568","A89087","A28E86","A68B81","A3877E","9A8680","AB8874","A28674","AB866B","A48566","A98371","AA8365","A8806D","A97F61","B6814D","AF7F54","AA7F5A","A4816F","A37E6C","A47F64","A47E5B","A57B64","A77B58","A17B61","A37864","A27856","A37464","B07A46","A97A4E","AA7543","A3774F","A27349","9B8274","9A7E6C","957F77","9B7A69","90796F","9B7B62","9C7B55","9D775C","97775C","9B755F","9C7260","9B7458","9B7352","9D724B","927365","887369","967357","907255","9D6E5F","976F56","9A6F4D","996C4C","A46D39","9A6D45","936F56","916C55","936D4C","926B4B","916A4A","96684D","946843","90684A","946449","8E6446","9E6735","97663A","9A6130","91643D","906039","876F64","866C5F","826C62","84695E","80675F","7D665D","8C6B51","8B684C","8B654E","8C6541","846A41","84654E","826450","88634A","8A6342","895F45","8B613D","895F3D","895D3A","806155","786054","845F43","7D5F44","925A32","8A5A38","865A39","805A42","805938","8D5229","865330","7F5435","814E2C","785B4B","77584D","79573A","78513A","794F2F","725643","724F37","6E503C","67513C","814921","794927","7B421E","714930","714122","674835","66422B","5D412E","52402B","6D3817","53371F","692B0F","522C16","412D1D","3A2414","331A0D","16120B"],"photo":1,"gain":1.08,"tex":0.14,"debris":0.025,"dleft":0.6,"spread":6,"fall":5,"below":7,"delay":150,"sweep":1500,"jit":600,"dur":1000,"cdur":1600,"depth":0.38,"seed":11,"top":1,"w":84,"h":56,"data":"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"},"cafe":{"pal":["FEFEFC","FCF8F0","FAF2E7","F7EADA","F4E4D4","F1DAC2","EBCCAC","E8C6A2","E6C09C","E7BA8E","E1BC9A","DEB999","DEB38D","E1B082","DEAA7E","E2A670","D7AC85","D5A57C","D99E71","E59B50","D09F76","D0996D","E9943C","E99235","D29364","CB9162","E08C3C","CE8C5A","CB8C5B","CF8355","D67F38","C88E5D","C88B57","C88756","C6895A","BC8A63","C78252","C6804C","C67D4B","C27F50","B97E56","CA7746","C57846","D47733","C7753E","CB713E","C5703D","CB6F34","BE794B","C07846","BE7545","BE7140","BF6E3C","C96A2E","C8662F","C26832","BD6A38","BE6631","C4612C","BD602B","C3592B","BB5925","B6764D","B67246","B56E41","B66B3D","B46537","B66131","B16132","B35E2E","B25B2C","B35827","B55621","AB6940","AB6133","AB5C30","AB582A","AB5426","A45D35","A4552B","955D3C","975530","BE5026","B5501E","AE5020","A75225","A35126","A54D22","C94319","BA421D","BF3916","A9461B","AB3C17","9F522A","9F4F27","9E4B23","964E29","954925","9A4520","914422","9C3C16","8F3D1D","BE3412","BC3011","B63112","B72D10","B52D10","B32C10","AE3114","AD2C10","A72E12","913214","AE290D","A9280D","A8290E","A6270D","9E260D","9F2109","921F0A","981A04","8D1907","854526","83381D","6D3D26","7E2C14","5D2A17","7D1E0C","5F1E0E","3F1E11","281A10","811506","711205","5E1207","481208","34130A","25160D","22160D","1F150C","1C130B","19110A","650A02","570903","4E0903","400803","3D0502","330803","2D0803","2D0502","2B0302","270302","200802","1A0703","1E0502","250302","1D0301","150803","130502","120402","130201","0A0200"],"photo":1,"gain":1.08,"tex":0.14,"debris":0.025,"dleft":0.6,"spread":6,"fall":5,"below":7,"delay":150,"sweep":1500,"jit":600,"dur":1000,"cdur":1600,"depth":0.38,"seed":23,"top":1,"w":84,"h":56,"data":"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"},"clusters":{"tex":0.12,"delay":250,"sweep":900,"jit":700,"dur":1000,"depth":0.42,"seed":5,"w":24,"h":20,"data":"////////////////////////////////////////////////////////////////////////AQL//////////wUGBv///////////wICAgIC/////////wQFBQYG////////AgEBAQEAAv////8GBAUGBAUGB/////8CAgEAAAEBAgL//wX/BQUEBAUF//////8CAQAAAAABAQL///8GBgUEBAUG//////8CAQEAAAABAgL//wf/BQYFBQb/////////AgEBAAEBAv///////wYGBv//Bv///////wIBAgICAv//////////////B////////wIBAv////8E////////////////////////////AgIEAwQE//////////////////////8EAgQDAwMEAgP/////////////////////BAMDAgMDBAT///////////////////8EAwMCAgIDAwQE//////////////////8EAwMCAgIDAwT///////////8F/////wQCBAMDAgMDBAQD////////////////////BAQDAwIEBAL/////////B/////8F//8GBAQEBAQE////////////////////////////BP//////////////"},"d1":{"tex":0.16,"debris":0.06,"dleft":0.3,"spread":3,"fall":7,"below":9,"delay":250,"sweep":1100,"jit":600,"dur":950,"depth":0.45,"seed":4,"w":33,"h":21,"data":"////AgEBAf8BAQEB////////////////AQEB////////////AQIBAQACAgEB////////////////Af8B////////////AQECAAEBAQEC////////////////AQIB////////AQAB////////////AgIB////////AQIAAAD/////////AQEB////////////AgIB////////AgIBAQEB////////AQEB////////////AQAB/////////wEAAQAA////////AgIC////////AwICAQMC////////////AwIC////////AgMD////////AgECAgIC////////////AgIC/////////wIC/////////wICAwIC////////////AgEB////////AwID////AwIC////AgID////////////AgEC////////AwIC////AgEC////AgIC////////////AgMD////////AwQE////AwQD////AwMC////////////BAIE////////AgQEAwMC////////AwMD////////////AwMD////////AgMDAwIC////////BAMC////////////AgID////////AwMEAgQD////////AwMD////////////AwP/////////AgMD////////////AwMD////////////AwMD////////BAQD////////////BAQE////////////BAQE////////AwQE////////////BAME////////////BAUF////////////BAQEBQUDBAQD////////////BAQEBAQEBAQD////////BAUEBQQEAwME////////////BAUDBAUFBAQE////////BAQFBAMEBAX/////////////A/8EAwMDBAUE////"},"d2":{"tex":0.16,"debris":0.06,"dleft":0.3,"spread":3,"fall":7,"below":9,"delay":250,"sweep":1100,"jit":600,"dur":950,"depth":0.45,"seed":5,"w":33,"h":21,"data":"////AgABAgIAAQEA////////////AgIBAQICAQEA////////AgABAQIBAv8B////////////AgECAQH/AgIB////////Af8BAQABAgAB////////////AQIAAgICAQEA////AgEC////////////AQEB////AQAA////////////AQEBAgIA////////////AQEA////AQEA////////////AQEBAQAB////////////AQAB////AAAB////////////AQD/AwP/////////AgMCAgMC////////////////////AwICAQIC////////AQP/AwEC////////////////////AgMDAwMC////////Av8BAQIC////////////////////AgIBAQID////AQIC////A/8C////////////////AgIB////AQID////AgID////AgIB////////////////AgID////AgID////AwID////BAMD////////////////AgMD////AgICAgQC////////AwIE////////////BAQD////////AwQDAwMD////////AwME////////////AwMD////////AwMCAwMD////////AwMD////////////AwMD////////Av8D////////////AwIE////////AgID////////////BQUE////////////BQQE////////BQMD////////////BAQD////////////AwQE////////BAQE////////////////BQQFA/8EBQQD////////BAUFBAQDBAQEBAUFAwQF////BAUDBAMFBAQE////////BAQDBf8DBAMFBAQEBAME////AwQEAwQEBAQE////////BAQFBAQEBAUEBAQDBAUF"},"d3":{"tex":0.16,"debris":0.06,"dleft":0.3,"spread":3,"fall":7,"below":9,"delay":250,"sweep":1100,"jit":600,"dur":950,"depth":0.45,"seed":6,"w":33,"h":21,"data":"////AQECAQECAgEC////////AAIAAQEBAAIBAQAB////////AQEAAQEAAQAA////////AgEBAgIBAQEBAQEC////////AQABAQEBAQEB////////AQEBAQEBAAEBAQAB////AgEB////////////AgIB////////////////////AAEBAQIA////////////AAIB/////////////////////wIBAQEB////////////AgEB////////////////////AQEBAgIB////////AgICAgIC////////////////////AQIC/wMC////////AwIBAQMC////////////////////AQECAQID////////AgICAgIC////////////////////AgMCAQMC////AQIB////AQH/////////AgEDAgICAgID////AwMB////AgIC////AgIC////////AgIDAgICAgID////AgMD////AwQE////BAQD////////AwMDAwQDAwQD////AwIDAwQD////////BAID////////////////////AwMCBAQDAwME////////BAMD////////////////////AwMDAwIDAwMD////////BP8C////////////////////AgMCAwID////////////AwMD////////////////////AwIDBAQF////////////BQME////////////////////BAQFAwQE////////////BAMD////////////////////BQQF////BQQFBQQDAwQD////////BQMEBQQEBQQEBQUD////////BAQFBAQDBAQE////////AwUEBQQEAwQEAwQE////////AwQEBAQDBQQE/////////wQEBAQEBAUEBQUF////"},"d4":{"tex":0.16,"debris":0.06,"dleft":0.3,"spread":3,"fall":7,"below":9,"delay":250,"sweep":1100,"jit":600,"dur":950,"depth":0.45,"seed":7,"w":33,"h":21,"data":"////AgEBAQEBAQEB////////////////////AAEB////////AgEBAAAAAQIA////////////////////AgAC////////AgABAQEBAgEB////////////////////AQEB////AQEB////////////AQEC////////////AQABAQEC////AgH/////////////AQH/////////////AAIBAQIA////AgEA////////////AQEA////////////AQEBAQIB////AgIC////////AwEBAgIB////////AgIC////AwL/////AgMC////////AQICAv8C////////AgIC////AQIC////AgED////////AgIBAwEC////////AgMC////AgMC////AgMC////AgIB////AgEC////AgEC////////AwIC////AgID////AgIC////A/8C////AQIC////////AgEC////AwQD////AwME////BAME////AgP/////////BAQD////BAMDBP8C////////AgMD////AwQEAwMDAgMDAwMEAwQDAwMDAwIE////////AwMD////AwIDBAMDAgMDBP8DAwQEAgMDAv8D////////AwQE////BAMCAgIDA/8DAwIEBAMDAwMD////////////BAID////////////////AwMD////BAQF////////////BQUD////////////////BAQD////BAUF////////////BAQD////////////////AwQE////////BQQEAwQDBAQE/////////////////////wMD////////AwQEBQMEBAMF////////////////////BQUE////////BAUEBAQEBAQE////////////////////AwQE////"},"lupa":{"tex":0.1,"debris":0.04,"dleft":0.2,"spread":3,"fall":3,"below":3,"delay":300,"sweep":900,"jit":600,"dur":1000,"depth":0.45,"seed":4,"w":18,"h":22,"data":"////////////////////////////////AgQDAgL//////////////wMEAwMCAwQDBP//////////AgMDAgQDAgMEAwT///////8CAwMC//////8CAwME//////8DAgP/AAH/////AwMC/////wIDAv8B/////////wMDBP///wQDA/8A/////////wIDA////wIDA////////////wMEBP///wMDBP///////////wIDBP///wQCBP///////////wMCBP////8EBAL/////////BAQD//////8EAgMD//////8EBAQF////////AgMDAwMEAwMEBQUFBf///////wQEAwQEAwQDBQQFBQX/////////AwMEBAP//wUFBAUF//////////////////8EBAQF////////////////////BQQF/////////////////////wUF//////////////////////8F////////////////////////////////////////////////"}};</script>
+<script>
+/* ═════════════ Voxels: cubos 3D que se montam (motivo visual do deck) ═════════════
+   Cada <canvas class="vox" data-vox="id"> desenha a figura VOX[id] em cubos.
+   Ao chegar no slide os cubos voam e se encaixam; com data-trig="n" a montagem espera o passo n.
+   Cores de forma vêm dos tokens --vox-0..--vox-7; fotos usam o verde (--vox-*) e depois a cor real. */
+(() => {
+  const VOX = window.__VOX || {};
+  const root = getComputedStyle(document.documentElement);
+  const hx = h => { h = h.trim().replace('#', ''); return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)]; };
+  const TOK = [0, 1, 2, 3, 4, 5, 6, 7].map(i => hx(root.getPropertyValue('--vox-' + i) || '#22c98a'));
+  const RAMP = [7, 5, 3, 1, 0].map(i => TOK[i]);
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const SC = 1.6;
+
+  function rampAt(L) { const t = Math.max(0, Math.min(.999, L)) * (RAMP.length - 1), i = t | 0, f = t - i, a = RAMP[i], b = RAMP[i + 1]; return [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f, a[2] + (b[2] - a[2]) * f]; }
+  const mix = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+  const col = (c, m) => 'rgb(' + Math.min(255, c[0] * m | 0) + ',' + Math.min(255, c[1] * m | 0) + ',' + Math.min(255, c[2] * m | 0) + ')';
+  const eo = t => 1 - Math.pow(1 - t, 3);
+
+  function Vox(cv, K) {
+    const x = cv.getContext('2d');
+    let seed = K.seed || 7; const R = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    const pal = K.pal ? K.pal.map(hx) : TOK;
+    const raw = atob(K.data), V = [], W = K.w, H = K.h;
+    for (let i = 0; i < raw.length; i++) {
+      const c = raw.charCodeAt(i); if (c === 255) continue;
+      const rc = pal[c], j = 1 + (R() - .5) * (K.tex || 0);
+      const L = (.299 * rc[0] + .587 * rc[1] + .114 * rc[2]) / 255, g = K.photo ? rampAt(L * (K.gain || 1)) : rc;
+      V.push({ gx: i % W, gy: (i / W) | 0, real: [rc[0] * j, rc[1] * j, rc[2] * j], green: [g[0] * j, g[1] * j, g[2] * j] });
+    }
+    V.forEach(v => { v.s0 = v.gy / H + R() * .55 + (1 - v.gx / W) * (K.dleft || 0); });
+    const cand = V.slice().sort((a, b) => b.s0 - a.s0), nd = Math.round(V.length * (K.debris || 0));
+    for (let i = 0; i < nd; i++) { const v = cand[i]; v.deb = 1; v.dx = -(R() * (K.spread || 4)) - .5; v.dy = (H - v.gy) * .15 + R() * (K.fall || 5) + 1; v.rot = (R() - .5) * 1.6; v.sc = .8 + R() * .9; }
+    V.forEach(v => { v.sx = (R() - .5) * W * 1.6; v.sy = (R() * .9 + .25) * H; v.sr = (R() - .5) * 3; v.t0 = (K.delay || 200) + (v.gx / W) * (K.sweep || 1200) + R() * (K.jit || 500); });
+    V.sort((a, b) => b.gy - a.gy || a.gx - b.gx);
+    let tEnd = 0; V.forEach(v => { tEnd = Math.max(tEnd, v.t0 + (K.dur || 950)); });
+    let CW, CH, s, k, ox, oy, start = 0, raf = 0;
+    function size() {
+      CW = cv.offsetWidth; CH = cv.offsetHeight; cv.width = CW * SC; cv.height = CH * SC; x.setTransform(SC, 0, 0, SC, 0, 0);
+      const dep = K.depth || .4; s = Math.min(CW / (W + dep), CH / (H + dep + (K.below || 0))); k = s * dep;
+      ox = (CW - s * (W + dep)) / 2; oy = k + (K.top ? 0 : (CH - s * (H + dep + (K.below || 0))) / 2);
+    }
+    function cube(px, py, z, c, a) {
+      const q = z - Math.max(.6, z * .07), kk = k * z / s; x.globalAlpha = a;
+      x.fillStyle = col(c, 1.38); x.beginPath(); x.moveTo(px, py); x.lineTo(px + kk, py - kk); x.lineTo(px + q + kk, py - kk); x.lineTo(px + q, py); x.fill();
+      x.fillStyle = col(c, .55); x.beginPath(); x.moveTo(px + q, py); x.lineTo(px + q + kk, py - kk); x.lineTo(px + q + kk, py + q - kk); x.lineTo(px + q, py + q); x.fill();
+      x.fillStyle = col(c, 1); x.fillRect(px, py, q, q);
+      x.fillStyle = col(c, 1.18); x.fillRect(px, py, q, Math.max(1, q * .12));
+    }
+    function frame(t) {
+      x.clearRect(0, 0, CW, CH);
+      let ct = K.photo ? Math.max(0, Math.min(1, (t - tEnd - 150) / (K.cdur || 1600))) : 0; ct = ct * ct * (3 - 2 * ct);
+      const fly = [], dur = K.dur || 950;
+      for (const v of V) {
+        const p = Math.max(0, Math.min(1, (t - v.t0) / dur)), c = K.photo ? mix(v.green, v.real, ct) : v.green;
+        if (p >= 1 && !v.deb) cube(ox + v.gx * s, oy + v.gy * s, s, c, 1); else if (p > 0) fly.push([v, p, c]);
+      }
+      for (const [v, p, c] of fly) {
+        const e = eo(p), tx = v.deb ? v.gx + v.dx : v.gx, ty = v.deb ? v.gy + v.dy : v.gy;
+        const gx = v.sx + (tx - v.sx) * e, gy = v.sy + (ty - v.sy) * e, z = s * (v.deb ? .3 + (v.sc - .3) * e : .3 + .7 * e), r = v.deb ? v.sr + (v.rot - v.sr) * e : v.sr * (1 - e);
+        x.save(); x.translate(ox + gx * s + s / 2, oy + gy * s + s / 2); x.rotate(r); cube(-z / 2, -z / 2, z, c, Math.min(1, p * 2.2)); x.restore();
+      }
+      x.globalAlpha = 1;
+    }
+    const total = tEnd + (K.photo ? (K.cdur || 1600) + 300 : 100);
+    function loop(now) { const t = now - start; frame(t); if (t < total) raf = requestAnimationFrame(loop); }
+    return {
+      final() { cancelAnimationFrame(raf); size(); frame(1e7); },
+      clear() { cancelAnimationFrame(raf); size(); x.clearRect(0, 0, CW, CH); },
+      play() { cancelAnimationFrame(raf); size(); if (reduce) { frame(1e7); return; } start = performance.now(); raf = requestAnimationFrame(loop); }
+    };
+  }
+
+  const items = [...document.querySelectorAll('canvas.vox')].map(cv => {
+    const K = VOX[cv.dataset.vox]; if (!K) return null;
+    const slide = cv.closest('section.slide'), n = cv.dataset.trig;
+    const trig = n ? slide.querySelector('.trg[data-step="' + n + '"]') : null;
+    return { cv, v: Vox(cv, K), slide, trig, armed: false };
+  }).filter(Boolean);
+
+  const isPdf = () => document.documentElement.classList.contains('pdf');
+  items.forEach(it => it.v.final());
+
+  let cur = null;
+  function arrive(slide) {
+    cur = slide;
+    items.forEach(it => {
+      if (it.slide !== slide) { it.v.final(); return; }
+      if (isPdf()) { it.v.final(); return; }
+      if (it.trig) { it.armed = it.trig.classList.contains('on'); it.armed ? it.v.final() : it.v.clear(); }
+      else it.v.play();
+    });
+  }
+  // passo que dispara a montagem (data-trig): observa a classe .on do marcador
+  items.filter(it => it.trig).forEach(it => {
+    new MutationObserver(() => {
+      if (it.slide !== cur || isPdf()) return;
+      const on = it.trig.classList.contains('on');
+      if (on && !it.armed) { it.armed = true; it.v.play(); }
+      else if (!on && it.armed) { it.armed = false; it.v.clear(); }
+    }).observe(it.trig, { attributes: true, attributeFilter: ['class'] });
+  });
+  const slides = [...document.querySelectorAll('section.slide')];
+  window.addEventListener('deck:slide', e => {
+    const d = e.detail || {}; const s = d.slide && d.slide.nodeType ? d.slide : slides[d.index];
+    if (s) arrive(s);
+  });
+  setTimeout(() => {
+    if (isPdf()) { items.forEach(it => it.v.final()); return; }
+    if (!cur && window.__deck) arrive(slides[window.__deck.cur]);
+  }, 300);
+})();
+</script>
+</body>
+</html>
