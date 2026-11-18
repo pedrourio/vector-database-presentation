@@ -363,6 +363,7 @@ body.ov .frame.cur{box-shadow:0 0 0 10px var(--ink)}
 .div h1{width:1060px}
 
 /* s3 · vetores */
+#s3 .emb{margin-top:6px;font:500 44px/1.1 var(--sans);letter-spacing:-.02em;color:var(--p-txt)}
 #s3 .tese{margin-top:36px;padding:6px 0 6px 26px;border-left:6px solid var(--p);font:600 32px/1.3 var(--sans);letter-spacing:-.015em;color:var(--fg)}
 #s3 .vecs{padding:34px 36px;display:flex;flex-direction:column;gap:16px;margin-top:40px}
 #s3 .cap{font:400 22px var(--mono);color:var(--mut)}
@@ -589,18 +590,19 @@ html.pdf .ui,.pdf .ui{display:none!important}
 </section>
 
 <section class="slide lt" id="s3" data-sec="Definição" data-who="Pedro" data-title="Dados viram vetores"
- data-notes="Definição: um banco vetorial guarda cada item como um vetor, uma lista de números gerada por um modelo de embedding, e responde por similaridade, devolvendo os vizinhos mais próximos em vez de registros iguais. Aponte as linhas: gato e felino têm números quase iguais, carro destoa. Os valores são ilustrativos; vetores reais têm centenas de dimensões. Fonte: Pan, Wang e Li (2024).">
+ data-notes="Pedro: os valores são guardados como vetores (embeddings), e a busca devolve por semelhança, não por exatidão. Cada vetor é uma lista de números, e cada número é uma dimensão. Quem gera esses números é um modelo de embedding pré-treinado (uma API ou um modelo local), não o SGBD nem os seus dados: o banco só guarda os vetores e mede a distância entre eles. No exemplo, os vetores de gato e felino estão próximos e o de carro, longe; essa relação vem do treinamento do modelo, não do documento. Valores ilustrativos: vetores reais têm centenas de dimensões. Fonte: Pan, Wang e Li (2024).">
   <div class="split" style="position:absolute;left:120px;right:120px;top:150px;grid-template-columns:minmax(0,1fr) 760px">
     <div>
       <p class="kick a">O que é?</p>
       <h1 class="title" data-split="Dados viram|vetores"></h1>
-      <p class="lead a" style="--i:2;margin-top:34px">Um banco que guarda itens como <b>vetores</b> e responde por <b>proximidade</b>: devolve os vizinhos mais próximos, não registros iguais.</p>
+      <p class="emb a" style="--i:1">(embeddings)</p>
+      <p class="lead a" style="--i:2;margin-top:30px">Um banco que guarda itens como <b>vetores</b> (embeddings) e responde por <b>semelhança</b>, não por <b>exatidão</b>.</p>
       <p class="tese a" style="--i:4">O modelo de embedding transforma significado em números; o banco vetorial só mede a distância</p>
     </div>
     <div class="vecs card a fr" style="--i:2">
-      <p class="cap">embedding · 6 de D dimensões</p>
+      <p class="cap">cada número é uma dimensão · 6 de D</p>
       <div class="vrow near a fr" style="--i:3"><span class="vlabel">gato</span><span class="cell v1">0.82</span><span class="cell v4">0.14</span><span class="cell v3">−0.31</span><span class="cell v1">0.67</span><span class="cell v4">0.05</span><span class="cell v3">−0.48</span></div><div class="vrow near a fr" style="--i:4"><span class="vlabel">felino</span><span class="cell v1">0.79</span><span class="cell v4">0.18</span><span class="cell v3">−0.27</span><span class="cell v1">0.61</span><span class="cell v4">0.09</span><span class="cell v3">−0.52</span></div><div class="vrow a fr" style="--i:5"><span class="vlabel">carro</span><span class="cell v3">−0.44</span><span class="cell v1">0.73</span><span class="cell v2">0.58</span><span class="cell v4">−0.12</span><span class="cell v1">0.86</span><span class="cell v2">0.31</span></div>
-      <p class="cap a" style="--i:7">Gato e felino ficam próximos; carro, longe · valores ilustrativos</p>
+      <p class="cap a" style="--i:7">Os vetores (embeddings) de gato e felino estão próximos; o de carro, longe · valores ilustrativos</p>
     </div>
   </div>
 </section>
