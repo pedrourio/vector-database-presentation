@@ -454,7 +454,11 @@ body.ov .frame.cur{box-shadow:0 0 0 10px var(--ink)}
 #s16 .code pre{font-size:25px;font-variant-ligatures:none}
 
 /* s18 · referências */
-#s18 .refs li.pend{background:transparent;box-shadow:none;border:2px dashed var(--wire);color:var(--mut)}
+#s18 .rl,#s20 .rl{position:absolute;left:120px;right:120px;top:330px;list-style:none;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px 28px;align-items:start}
+#s20 .rl.one{grid-template-columns:minmax(0,1fr);right:420px;gap:22px}
+.rl li{padding:18px 24px;font:400 22px/1.42 var(--sans);color:var(--fg);overflow-wrap:anywhere}
+.rl li small{display:inline-block;margin-right:12px;padding:2px 12px;border-radius:999px;background:var(--p-soft);color:var(--p-txt);font:600 20px var(--sans)}
+#s20 .rl li{font-size:25px}
 
 /* s19 · encerramento */
 #s19 .by{flex-wrap:wrap;width:1060px}
@@ -783,12 +787,16 @@ LIMIT 5;</pre>
   <canvas class="vox a fd" data-vox="lupa" style="left:1360px;top:200px;width:440px;height:640px" aria-hidden="true"></canvas>
 </section>
 
-<section class="slide lt" id="s18" data-sec="Referências" data-who="Guilherme" data-title="Para se aprofundar"
- data-notes="Referências em ABNT. Livro-base: Manning, Raghavan e Schütze (2008); o capítulo 6 trata do modelo de espaço vetorial.">
-  <div class="hd"><h1 class="title" data-split="Para se aprofundar"></h1></div>
-  <ol class="bd refs" style="top:300px">
-    <li class="card a fr" style="--i:1"><span class="well sm"><svg class="ic" aria-hidden="true"><use href="#i-book"/></svg></span><span><small>Livro</small><br>MANNING, C. D.; RAGHAVAN, P.; SCHÜTZE, H. <b>Introduction to Information Retrieval</b>. Cambridge: Cambridge University Press, 2008. Cap. 6</span></li>
-  </ol>
+<section class="slide lt" id="s18" data-sec="Referências" data-who="Guilherme" data-title="Referências: livro e artigos"
+ data-notes="Referências em ABNT, em ordem alfabética: o livro-base de Manning, Raghavan e Schütze, os artigos que fundamentam a linha do tempo (Codd 1970, Salton 1975), o índice HNSW, o FAISS, o Milvus, o RAG e o survey de Pan, Wang e Li.">
+  <div class="hd"><p class="kick a">Livro e artigos</p><h1 class="title" data-split="Referências"></h1></div>
+  <ol class="rl"><li class="card a" style="--i:1"><small>Artigo</small>CODD, E. F. A relational model of data for large shared data banks. <b>Communications of the ACM</b>, v. 13, n. 6, p. 377-387, 1970.</li><li class="card a" style="--i:2"><small>Artigo</small>JOHNSON, J.; DOUZE, M.; JÉGOU, H. Billion-scale similarity search with GPUs. <b>IEEE Transactions on Big Data</b>, v. 7, n. 3, p. 535-547, 2021.</li><li class="card a" style="--i:3"><small>Artigo</small>LEWIS, P. et al. Retrieval-augmented generation for knowledge-intensive NLP tasks. <b>Advances in Neural Information Processing Systems</b>, v. 33, p. 9459-9474, 2020.</li><li class="card a" style="--i:4"><small>Artigo</small>MALKOV, Y. A.; YASHUNIN, D. A. Efficient and robust approximate nearest neighbor search using hierarchical navigable small world graphs. <b>IEEE Transactions on Pattern Analysis and Machine Intelligence</b>, v. 42, n. 4, p. 824-836, 2020.</li><li class="card a" style="--i:5"><small>Livro</small>MANNING, C. D.; RAGHAVAN, P.; SCHÜTZE, H. <b>Introduction to Information Retrieval</b>. Cambridge: Cambridge University Press, 2008.</li><li class="card a" style="--i:6"><small>Artigo</small>PAN, J. J.; WANG, J.; LI, G. Survey of vector database management systems. <b>The VLDB Journal</b>, v. 33, n. 5, p. 1591-1615, 2024.</li><li class="card a" style="--i:7"><small>Artigo</small>SALTON, G.; WONG, A.; YANG, C. S. A vector space model for automatic indexing. <b>Communications of the ACM</b>, v. 18, n. 11, p. 613-620, 1975.</li><li class="card a" style="--i:8"><small>Artigo</small>WANG, J. et al. Milvus: a purpose-built vector data management system. In: <b>Proceedings of the 2021 International Conference on Management of Data (SIGMOD)</b>. ACM, 2021. p. 2614-2627.</li></ol>
+</section>
+
+<section class="slide lt" id="s20" data-sec="Referências" data-who="Guilherme" data-title="Referências: software e fontes técnicas"
+ data-notes="Fontes das ferramentas citadas: o pgvector, a adoção do pgvector pelo Supabase e as fotos usadas nas demonstrações.">
+  <div class="hd"><p class="kick a">Software e fontes técnicas</p><h1 class="title" data-split="Referências"></h1></div>
+  <ol class="rl one"><li class="card a" style="--i:1"><small>Software</small>KANE, A. <b>pgvector</b>: open-source vector similarity search for Postgres. 2021. Disponível em: https://github.com/pgvector/pgvector. Acesso em: 24 nov. 2026.</li><li class="card a" style="--i:2"><small>Blog</small>SUPABASE. <b>Storing OpenAI embeddings in Postgres with pgvector</b>. 2023. Disponível em: https://supabase.com/blog/openai-embeddings-postgres-vector. Acesso em: 24 nov. 2026.</li><li class="card a" style="--i:3"><small>Imagens</small>VAN DER WALT, S. et al. scikit-image: image processing in Python. <b>PeerJ</b>, v. 2, e453, 2014. Fotos dos slides 9 e 13, em domínio público (CC0).</li></ol>
 </section>
 
 <section class="slide lt fim" id="s19" data-sec="Encerramento" data-who="Todos" data-title="Perguntas?"
